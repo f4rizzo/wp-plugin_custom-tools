@@ -16,23 +16,30 @@
                 "class": "",
                 "id": ""
             },
+            "hide_field": "",
+            "hide_label": "",
+            "hide_instructions": "",
+            "hide_required": "",
             "choices": {
-                "default": "Disposizione automatica",
-                "large": "Larga: Immagine su due colonne",
-                "tall": "Alta: Immagine su due righe"
+                "wide": "Wide: Immagine su due colonne",
+                "tall": "Long: Immagine su due righe"
             },
-            "default_value": "default",
+            "default_value": false,
             "return_format": "value",
             "multiple": 0,
             "max": "",
+            "placeholder": "Ingombro normale",
             "prepend": "",
             "append": "",
-            "allow_null": 0,
+            "acfe_settings": "",
+            "acfe_validate": "",
+            "allow_null": 1,
+            "instruction_placement": "",
+            "acfe_permissions": "",
             "allow_in_bindings": 0,
             "ui": 0,
             "acfe_field_group_condition": 0,
             "ajax": 0,
-            "placeholder": "",
             "create_options": 0,
             "save_options": 0,
             "allow_custom": 0,
@@ -61,9 +68,10 @@
     "acfe_autosync": [
         "json"
     ],
-    "acfe_form": 0,
+    "acfe_form": 1,
     "acfe_display_title": "",
+    "acfe_permissions": "",
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1754668667
+    "modified": 1755432202
 }

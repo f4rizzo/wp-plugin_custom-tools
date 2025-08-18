@@ -209,7 +209,7 @@
         },
         {
             "key": "field_686180f424146",
-            "label": "Altre info [Band, Vini, Abito ecc... ]",
+            "label": "Altre info [Band, Vini, Abito ... ]",
             "name": "info_matrimonio",
             "aria-label": "",
             "type": "repeater",
@@ -443,5 +443,5 @@
     "acfe_display_title": "",
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1754491996
+    "modified": 1754900851
 }

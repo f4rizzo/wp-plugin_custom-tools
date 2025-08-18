@@ -52,7 +52,9 @@ add_filter('acf/settings/load_json', function ($paths) {
  * Questi formati vengono usati per ottimizzare il caricamento
  * delle immagini nelle gallerie:
  * - portfolio_thumb: thumbnail da 454px per anteprime piccole.
- * - portfolio_large: immagini ottimizzate fino a 1500px di larghezza.
+ * - gallery_large: immagini ottimizzate fino a 1500px di larghezza (per formato normal).
+ * - gallery_wide: formato wide 800x400px con crop.
+ * - gallery_tall: formato tall 400x800px con crop.
  */
 
 add_action('after_setup_theme', function () {
@@ -60,8 +62,17 @@ add_action('after_setup_theme', function () {
     // Thumbnail per piccole anteprime (mantiene proporzioni, larghezza max 454px)
     add_image_size('portfolio_thumb', 454, 0, false); // true = crop / false = proporzioni originali
 
-    // Formato ottimizzato per immagini large (max 1500px di larghezza)
-    add_image_size('portfolio_large', 1500, 0, false); // Mantiene proporzioni
+    // Formato ottimizzato per immagini standard/normal (max 1500px di larghezza)
+    add_image_size('gallery_large', 1500, 0, false); // Mantiene proporzioni - usato per 'default'/'normal'
+
+    // Formati specifici per modular gallery
+    add_image_size('gallery_wide', 800, 400, true);  // Wide format - immagine su due colonne
+    add_image_size('gallery_tall', 400, 800, true);  // Tall format - immagine su due righe
+
+    // Formati futuri (commentati per ora)
+    // add_image_size('gallery_square', 400, 400, true); // Quadrato
+    // add_image_size('gallery_portrait', 400, 600, true); // Ritratto
+    // add_image_size('gallery_landscape', 600, 400, true); // Paesaggio
 });
 
 
@@ -70,171 +81,9 @@ add_filter('image_size_names_choose', 'aggiungi_dimensioni_personalizzate');
 function aggiungi_dimensioni_personalizzate($sizes)
 {
     return array_merge($sizes, [
-        'portfolio_thumb' => 'Portfolio Thumb - 454 x 0 (454px)',
-        'portfolio_large'  => 'Portfolio Large - 1500px',
+        'portfolio_thumb'   => 'Portfolio Thumb - 454px',
+        'gallery_large'     => 'Gallery Standard - 1500px',
+        'gallery_wide'      => 'Gallery Wide - 800x400px',
+        'gallery_tall'      => 'Gallery Tall - 400x800px',
     ]);
-}
-
-
-
-/**
- * ======================================================================================
- * 2. Shortcode per mostrare una thumb cliccabile che apre l'immagine originale in Fancybox
- * ======================================================================================
- *
- * Questo shortcode viene utilizzato all'interno del Loop Item Template di Elementor Pro
- * (via widget "Shortcode") e genera il markup HTML necessario per:
- *
- *  - Mostrare l'immagine 'immagine_anteprima_portfolio' (in formato custom, es. 'portfolio_thumb')
- *  - Aprire in lightbox nativa (Fancybox 3) l'immagine 'immagine_originale_portfolio'
- *  - Consentire la navigazione tra le immagini con lo stesso gruppo Fancybox
- *
- * Requisiti:
- *  - Elementor Pro (per Loop Grid e supporto lightbox nativo)
- *  - ACF Pro (con i campi immagine impostati per restituire un ARRAY)
- *  - Le immagini devono essere filtrate tramite la query Elementor con meta_query su 'mostra_in_home'
- *
- * Come usare:
- *  - Inserisci lo shortcode [portfolio_lightbox_item] nel widget "Shortcode" all'interno del Loop Item Template
- *  - Elementor eseguirà la funzione PHP e inietterà il markup dinamico nel DOM
- */
-
-function portfolio_lightbox_shortcode()
-{
-    // Recupera i campi ACF immagine come ARRAY
-    $img_anteprima = get_field('immagine_anteprima_portfolio');
-    $img_originale = get_field('immagine_originale_portfolio');
-
-    // Verifica che entrambi i campi siano presenti
-    if (!$img_anteprima || !$img_originale) {
-        return ''; // Se uno dei due è vuoto, non genera nulla
-    }
-
-    // === 1. Specifica la size registrata via add_image_size (thumb personalizzata) ===
-    $thumb_size = 'portfolio_thumb'; // Cambia con la tua size, es: 'portfolio_thumb_due'
-
-    // === 2. Estrai l’URL corretto dal campo immagine (array) ===
-    $url_anteprima = is_array($img_anteprima) && isset($img_anteprima['sizes'][$thumb_size])
-        ? $img_anteprima['sizes'][$thumb_size]
-        : (is_array($img_anteprima) ? $img_anteprima['url'] : $img_anteprima);
-
-    $url_originale = is_array($img_originale) ? $img_originale['url'] : $img_originale;
-
-    // === 3. Crea l'output HTML con link in lightbox e immagine preview ===
-    ob_start();
-?>
-    <a href="<?php echo esc_url($url_originale); ?>"
-        data-elementor-open-lightbox="yes"
-        data-elementor-lightbox-slideshow="portfolio"
-        rel="lightbox">
-        <img src="<?php echo esc_url($url_anteprima); ?>" alt="Anteprima Portfolio" />
-    </a>
-<?php
-    return ob_get_clean();
-}
-
-// === 4. Registra lo shortcode ===
-// Questo rende utilizzabile [portfolio_lightbox_item] ovunque nel sito
-add_shortcode('portfolio_lightbox_item', 'portfolio_lightbox_shortcode');
-
-
-
-/**
- * =========================================================
- * Aggiunge la classe `.large` alle immagini marcate con meta large = true
- * =========================================================
- *
- * Questo codice intercetta l'output del widget Gallery di Elementor
- * e aggiunge la classe `large` alle immagini che hanno
- * il campo ACF (meta) `large_gallery_image` impostato su true.
- */
-add_filter('elementor/widget/render_content', 'aggiungi_classi_large_gallery', 10, 2);
-
-function aggiungi_classi_large_gallery($content, $widget)
-{
-    if ('gallery' !== $widget->get_name()) {
-        return $content;
-    }
-
-    // Trova tutti gli ID delle immagini nel markup della gallery
-    preg_match_all('/wp-image-(\d+)/', $content, $matches);
-    if (!empty($matches[1])) {
-        foreach ($matches[1] as $image_id) {
-            $is_large = get_field('large_gallery_image', $image_id);
-            if ($is_large) {
-                $content = preg_replace(
-                    '/(wp-image-' . $image_id . ')/',
-                    '$1 large',
-                    $content
-                );
-            }
-        }
-    }
-
-    return $content;
-}
-
-
-function aggiungi_classi_gallery_size_select($content, $widget)
-{
-    if ('gallery' !== $widget->get_name()) {
-        return $content;
-    }
-
-    preg_match_all('/wp-image-(\d+)/', $content, $matches);
-
-    if (empty($matches[1])) {
-        return $content;
-    }
-
-    foreach ($matches[1] as $image_id) {
-        $size = get_field('gallery_image_size', $image_id);
-
-        $classe = '';
-        switch ($size) {
-            case 'large':
-                $classe = 'large';
-                break;
-            case 'tall':
-                $classe = 'tall';
-                break;
-            default:
-                continue 2; // Salta al prossimo ID se è 'normal' o vuoto
-        }
-
-        if ($classe) {
-            $content = preg_replace(
-                '/(wp-image-' . $image_id . ')/',
-                '$1 ' . $classe,
-                $content
-            );
-        }
-    }
-
-    return $content;
-}
-
-/**
- * =======================================================
- * Funzione Helper: get_portfolio_thumb_url
- * =======================================================
- * Ritorna l'URL ottimizzato di un'immagine del portfolio
- * in base al campo ACF 'large_gallery_image'.
- *
- * @param int $image_id L'ID dell'immagine in WP.
- * @return string L'URL della thumb ottimizzata.
- */
-function get_portfolio_thumb_url($image_id)
-{
-    // Verifica se il campo ACF 'large_gallery_image' è attivo
-    $is_large = get_field('large_gallery_image', $image_id);
-
-    // Determina il formato corretto
-    $size = $is_large ? 'portfolio_large' : 'large';
-
-    // Recupera l'array con i dati del formato immagine
-    $image_data = wp_get_attachment_image_src($image_id, $size);
-
-    // Se il formato esiste, ritorna l'URL, altrimenti l'URL originale
-    return $image_data ? $image_data[0] : wp_get_attachment_url($image_id);
 }
