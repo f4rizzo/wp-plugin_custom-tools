@@ -52,7 +52,6 @@ add_filter('acf/settings/load_json', function ($paths) {
  * Questi formati vengono usati per ottimizzare il caricamento
  * delle immagini nelle gallerie:
  * - portfolio_thumb: thumbnail da 454px per anteprime piccole.
- * - gallery_large: immagini ottimizzate fino a 1500px di larghezza (per formato normal).
  * - gallery_wide: formato wide 800x400px con crop.
  * - gallery_tall: formato tall 400x800px con crop.
  */
@@ -62,12 +61,9 @@ add_action('after_setup_theme', function () {
     // Thumbnail per piccole anteprime (mantiene proporzioni, larghezza max 454px)
     add_image_size('portfolio_thumb', 454, 0, false); // true = crop / false = proporzioni originali
 
-    // Formato ottimizzato per immagini standard/normal (max 1500px di larghezza)
-    add_image_size('gallery_large', 1500, 0, false); // Mantiene proporzioni - usato per 'default'/'normal'
-
     // Formati specifici per modular gallery
-    add_image_size('gallery_wide', 800, 400, true);  // Wide format - immagine su due colonne
-    add_image_size('gallery_tall', 400, 800, true);  // Tall format - immagine su due righe
+    add_image_size('gallery_wide', 1480, 0, false);  // Wide format - immagine su due colonne
+    add_image_size('gallery_tall', 0, 1200, false);  // Tall format - immagine su due righe
 
     // Formati futuri (commentati per ora)
     // add_image_size('gallery_square', 400, 400, true); // Quadrato
@@ -82,8 +78,7 @@ function aggiungi_dimensioni_personalizzate($sizes)
 {
     return array_merge($sizes, [
         'portfolio_thumb'   => 'Portfolio Thumb - 454px',
-        'gallery_large'     => 'Gallery Standard - 1500px',
-        'gallery_wide'      => 'Gallery Wide - 800x400px',
-        'gallery_tall'      => 'Gallery Tall - 400x800px',
+        'gallery_wide'      => 'Gallery Wide - 1480',
+        'gallery_tall'      => 'Gallery Tall - 1200h',
     ]);
 }

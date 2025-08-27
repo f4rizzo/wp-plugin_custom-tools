@@ -79,8 +79,8 @@ add_shortcode('modular_gallery', function ($atts) {
  * in base al campo ACF 'gallery_image_size'.
  * 
  * Vengono generate delle immagini ad-hoc per i formati gestiti:
- * - 'wide': usa 'gallery_wide' (800x400px con crop)
- * - 'tall': usa 'gallery_tall' (400x800px con crop)
+ * - 'wide': usa 'gallery_wide' (1480x0px senza crop)
+ * - 'tall': usa 'gallery_tall' (0x1200px senza crop)
  * - 'standard': usa 'large' (~1024px, proporzioni originali)
  *
  * @param int $image_id L'ID dell'immagine in WP.
