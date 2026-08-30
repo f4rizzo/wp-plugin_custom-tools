@@ -10,15 +10,34 @@
 // Sicurezza: impedisce l'accesso diretto al file
 if (!defined('ABSPATH')) exit;
 
-// Includi i file delle funzionalità
-require_once plugin_dir_path(__FILE__) . 'inc/register-cpt.php';
-require_once plugin_dir_path(__FILE__) . 'inc/admin-columns.php';
-// require_once plugin_dir_path(__FILE__) . 'inc/debug.php';
-require_once plugin_dir_path(__FILE__) . 'shortcodes/matrimonio.php';
-require_once plugin_dir_path(__FILE__) . 'shortcodes/portfolio.php';
-require_once plugin_dir_path(__FILE__) . 'shortcodes/modular-gallery.php';
+// Controllo dipendenze (ACF PRO / Elementor) + avviso in bacheca
+require_once plugin_dir_path(__FILE__) . 'inc/dependencies.php';
 
-// require_once plugin_dir_path(__FILE__) . 'inc/acf-fields.php'; // se ti serve in futuro
+/**
+ * =======================================================
+ * Caricamento delle funzionalità
+ * =======================================================
+ * CPT, colonne admin e shortcode usano get_field() di ACF: li carichiamo
+ * solo se ACF è attivo, così un ambiente senza ACF non genera errori fatali.
+ * L'avviso all'utente è gestito da inc/dependencies.php.
+ *
+ * Hook su plugins_loaded per non dipendere dall'ordine di caricamento dei plugin.
+ */
+add_action('plugins_loaded', function () {
+    if (!custom_tools_has_acf()) {
+        return;
+    }
+
+    $base = plugin_dir_path(__FILE__);
+    require_once $base . 'inc/register-cpt.php';
+    require_once $base . 'inc/admin-columns.php';
+    // require_once $base . 'inc/debug.php';
+    require_once $base . 'shortcodes/matrimonio.php';
+    require_once $base . 'shortcodes/portfolio.php';
+    require_once $base . 'shortcodes/modular-gallery.php';
+
+    // require_once $base . 'inc/acf-fields.php'; // se ti serve in futuro
+});
 
 
 /**
