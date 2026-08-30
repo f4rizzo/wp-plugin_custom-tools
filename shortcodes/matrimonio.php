@@ -75,7 +75,7 @@ function mostra_info_matrimonio($atts)
 
     // Recupera i 3 campi fissi
     $location = get_field('matrimonio_location');
-    $provincia = get_field('matrimonio_provincia');
+    $luogo = get_field('matrimonio_luogo');
     $catering = get_field('matrimonio_catering');
 
     // Inizializza un array con gli elementi della griglia
@@ -88,10 +88,10 @@ function mostra_info_matrimonio($atts)
             'value' => $location
         ];
     }
-    if ($provincia) {
+    if ($luogo) {
         $info_items[] = [
-            'label' => 'Provincia',
-            'value' => $provincia
+            'label' => 'Luogo',
+            'value' => $luogo
         ];
     }
     if ($catering) {

@@ -165,8 +165,8 @@
         },
         {
             "key": "field_6862f2866b3ab",
-            "label": "Provincia",
-            "name": "matrimonio_provincia",
+            "label": "Luogo",
+            "name": "matrimonio_luogo",
             "aria-label": "",
             "type": "text",
             "instructions": "",
@@ -443,5 +443,5 @@
     "acfe_display_title": "",
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1754900851
+    "modified": 1758966667
 }
