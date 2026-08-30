@@ -31,7 +31,6 @@ add_action('plugins_loaded', function () {
     $base = plugin_dir_path(__FILE__);
     require_once $base . 'inc/register-cpt.php';
     require_once $base . 'inc/admin-columns.php';
-    // require_once $base . 'inc/debug.php';
     require_once $base . 'shortcodes/matrimonio.php';
     require_once $base . 'shortcodes/portfolio.php';
     require_once $base . 'shortcodes/modular-gallery.php';

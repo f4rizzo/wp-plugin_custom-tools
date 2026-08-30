@@ -32,9 +32,8 @@ Il file `custom-tools.php` carica i moduli PHP:
 - `shortcodes/portfolio.php`
 - `shortcodes/modular-gallery.php`
 
-Nota:
-
-- `inc/debug.php` e presente ma commentato nel bootstrap (non attivo di default).
+I moduli che usano `get_field()` vengono caricati su `plugins_loaded` solo se ACF
+è attivo (vedi anche `inc/dependencies.php`).
 
 ### 2. Sync ACF JSON dentro la repo
 
@@ -197,7 +196,9 @@ Messaggi di fallback:
 
 ### 7. Helper immagini per la galleria modulare
 
-Funzione: `get_gallery_thumb_url($image_id)`.
+Funzione: `get_gallery_thumb_url($image_id, $size = null)`.
+Se `$size` (valore di `gallery_image_size`) è già noto va passato, per evitare
+una seconda lettura del campo ACF.
 
 Mappatura campo ACF `gallery_image_size` -> size WP:
 
@@ -209,19 +210,8 @@ Fallback finale:
 
 - se la size non e disponibile, usa URL originale attachment.
 
-### 8. Modulo debug (presente ma non attivo)
-
-File: `inc/debug.php`.
-
-Se incluso nel bootstrap, in `wp_footer` (solo admin) mostra pannello fisso con:
-
-- lista immagini media library
-- valore campo `gallery_image_size` per attachment
-- totale immagini e conteggio immagini con campo valorizzato
-
-Stato attuale:
-
-- non attivo perche `require_once` e commentato.
+Lo shortcode fa il prime della meta cache (`update_meta_cache`) su tutti gli
+attachment della galleria prima del loop: una query invece di N.
 
 ## Modello dati incluso (ACF JSON)
 
@@ -367,7 +357,7 @@ custom-tools/
 |- inc/
 |  |- register-cpt.php
 |  |- admin-columns.php
-|  `- debug.php
+|  `- dependencies.php
 |- shortcodes/
 |  |- portfolio.php
 |  |- matrimonio.php
