@@ -33,6 +33,7 @@ Il file `custom-tools.php` carica i moduli PHP:
 - `shortcodes/matrimonio.php`
 - `shortcodes/portfolio.php`
 - `shortcodes/modular-gallery.php`
+- `inc/compat-acfe.php` (temporaneo, vedi *Limiti attuali*)
 
 I moduli che usano `get_field()` vengono caricati su `plugins_loaded` solo se ACF
 è attivo (vedi anche `inc/dependencies.php`).
@@ -464,6 +465,7 @@ custom-tools/
 |  |- admin-columns.php
 |  |- dependencies.php
 |  |- images.php
+|  |- compat-acfe.php
 |  `- class-image-editor-imagick.php
 |- shortcodes/
 |  |- portfolio.php
@@ -476,6 +478,7 @@ custom-tools/
 
 ## Limiti attuali / note di manutenzione
 
+- `inc/compat-acfe.php` è un correttivo **temporaneo**: ACF Pro 6.8 ha reso privata `acf_field_checkbox::$_values` e ACFE Pro 0.9.2.3 la scrive nel suo render del checkbox, generando un errore fatale in admin. Il file stacca il render di ACFE e rimette quello di ACF, solo se rileva l'incompatibilità. Dopo l'aggiornamento di ACFE va eliminato, insieme al `require` in `custom-tools.php`.
 - `assets/js/custom-tools.js` e vuoto (nessuna logica JS attiva).
 - il file `inc/register-cpt.php` non registra CPT in PHP: contiene solo query Elementor.
 - non ci sono CSS front-end nel plugin per `.modular-gallery` o `.matrimonio-info`: lo styling e demandato a tema/template.
