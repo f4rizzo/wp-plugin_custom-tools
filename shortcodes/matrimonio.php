@@ -1,5 +1,8 @@
 <?php
 
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 /**
  * =======================================================
@@ -14,10 +17,8 @@
 
 function matrimonio_titolo_shortcode()
 {
-    global $post;
-
-    $nome1 = get_field('nome_coniuge_1', $post->ID);
-    $nome2 = get_field('nome_coniuge_2', $post->ID);
+    $nome1 = get_field('nome_coniuge_1', get_the_ID());
+    $nome2 = get_field('nome_coniuge_2', get_the_ID());
 
     if ($nome1 && $nome2) {
         return 'Il matrimonio di<br>' .
@@ -132,6 +133,5 @@ function mostra_info_matrimonio($atts)
     return ob_get_clean();
 }
 
-if (function_exists('get_field')) {
-    add_shortcode('info_matrimonio', 'mostra_info_matrimonio');
-}
+// Il file viene caricato solo con ACF attivo (vedi custom-tools.php)
+add_shortcode('info_matrimonio', 'mostra_info_matrimonio');
