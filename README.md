@@ -229,20 +229,19 @@ Layout (tutti facoltativi; **senza, l'output è identico byte per byte a prima**
 
 | Parametro | Valori | Default |
 |---|---|---|
-| `layout` | `modulare` (ingombro wide/tall foto per foto) · `colonna` · `coppia` · `trio` (una grande + due impilate) · `griglia` (celle uguali) · `masonry` (proporzioni naturali, ordine per colonna) | `modulare` |
+| `layout` | `modulare` (ingombro wide/tall foto per foto; una `tall` che resterebbe senza foto accanto, in fondo o prima di una `wide`, è mostrata come standard) · `colonna` · `coppia` · `trio` (una grande + due impilate) · `griglia` (celle uguali) · `masonry` (proporzioni naturali, ordine per colonna) | `modulare` |
 | `colonne` / `colonne_tablet` / `colonne_mobile` | 1–6 / 1–6 / 1–4 | 2 / 1 / 1 |
 | `breakpoint` | da dove valgono le colonne desktop: `1024` · `1280` · `1440` | `1440` |
 | `proporzione` | celle di `griglia`/`coppia`: `3:2` · `4:3` · `1:1` · `4:5` · `2:3` · `auto` | griglia 3:2, coppia 4:5 |
 | `gap` | spazio in px | `10` |
 | `larghezza` | `contenuto` (max 1138px) · `piena` | `contenuto` |
-| `riempi` | `si` = riempie i buchi (l'ordine può cambiare) | — |
 | `didascalie` | `si` = didascalia sotto la foto | — |
 | `nitide` | `si` = mai più larga della risoluzione del file | — |
 
 ```text
 [modular_gallery ids="…" layout="trio" breakpoint="1024"]
 [modular_gallery ids="…" layout="griglia" colonne="3" colonne_tablet="2" proporzione="4:5"]
-[modular_gallery field="galleria_matrimonio_parte_1" breakpoint="1024" riempi="si"]
+[modular_gallery field="galleria_matrimonio_parte_1" breakpoint="1024"]
 ```
 
 L'attributo `sizes` di ogni foto è calcolato dai parametri (colonne, gap, larghezza,

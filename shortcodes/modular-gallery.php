@@ -15,7 +15,10 @@
  *
  * Layout (tutti facoltativi; senza, la galleria è identica a prima):
  * - layout:     modulare (default) | colonna | coppia | trio | griglia | masonry
- *     modulare  ingombro scelto foto per foto (wide/tall, campo ACF dell'immagine)
+ *     modulare  ingombro scelto foto per foto (wide/tall, campo ACF dell'immagine);
+ *               una 'tall' che resterebbe senza foto accanto (in fondo alla
+ *               galleria o prima di una 'wide') viene mostrata come standard,
+ *               così non restano buchi e l'ordine non cambia
  *     colonna   una foto per riga, sempre
  *     coppia    due foto affiancate per riga, stessa altezza
  *     trio      una grande a sinistra (due righe) + due impilate a destra, a ripetere
@@ -28,7 +31,6 @@
  * - proporzione:    celle di "griglia"/"coppia": 3:2 | 4:3 | 1:1 | 4:5 | 2:3 | auto
  * - gap:            spazio tra le foto in px (default 10)
  * - larghezza:      contenuto (max 1138px, default) | piena (tutta la pagina)
- * - riempi:         si = riempie i buchi della griglia (può cambiare l'ordine)
  * - didascalie:     si = mostra la didascalia sotto la foto
  * - nitide:         si = una foto non viene mai mostrata più grande della
  *                   sua risoluzione (evita foto sgranate se il file è piccolo)
@@ -75,7 +77,6 @@ add_shortcode('modular_gallery', function ($atts) {
         'proporzione'    => '',
         'gap'            => '',
         'larghezza'      => 'contenuto',
-        'riempi'         => '',
         'didascalie'     => '',
         'nitide'         => '',
     ], $atts);
@@ -103,6 +104,11 @@ add_shortcode('modular_gallery', function ($atts) {
     _prime_post_caches($ids, false, true);
 
     $cfg = custom_tools_gallery_config($atts);
+
+    // Layout modulare: ingombri scelti dalla cliente, senza 'tall' orfane
+    if ($cfg['layout'] === 'modulare') {
+        $cfg['ingombri'] = custom_tools_gallery_resolve_orphans(array_map('custom_tools_gallery_layout', $ids), $cfg['cols']);
+    }
 
     $html = '';
     foreach ($ids as $i => $id) {
@@ -167,7 +173,7 @@ function custom_tools_gallery_config($atts)
         && $breakpoint === CUSTOM_TOOLS_GALLERY_BREAKPOINT
         && $gap === CUSTOM_TOOLS_GALLERY_GAP
         && !$full && $ratio === null
-        && $atts['riempi'] !== 'si' && $atts['didascalie'] !== 'si' && $atts['nitide'] !== 'si';
+        && $atts['didascalie'] !== 'si' && $atts['nitide'] !== 'si';
 
     // Classi: con la configurazione di default solo "modular-gallery", come sempre
     $class = 'modular-gallery';
@@ -176,7 +182,6 @@ function custom_tools_gallery_config($atts)
     if (!$is_default) {
         $class .= ' modular-gallery--' . $layout . ' modular-gallery--parametrica';
         $class .= $full ? ' modular-gallery--piena' : '';
-        $class .= $atts['riempi'] === 'si' ? ' modular-gallery--riempi' : '';
         $class .= $atts['didascalie'] === 'si' ? ' modular-gallery--didascalie' : '';
         $class .= $atts['nitide'] === 'si' ? ' modular-gallery--nitide' : '';
         $class .= $ratio ? ' modular-gallery--proporzione' : '';
@@ -212,6 +217,100 @@ function custom_tools_gallery_config($atts)
         'class'       => $class,
         'style'       => $style,
     ];
+}
+
+
+/**
+ * =======================================================
+ * Funzione Helper: custom_tools_gallery_resolve_orphans
+ * =======================================================
+ * Simula il posizionamento della griglia su desktop (come fa il browser
+ * con grid-auto-flow: row) e trasforma in standard le 'tall' che
+ * lascerebbero celle vuote accanto a sé: in fondo alla galleria, prima
+ * di una 'wide', o con una sola foto accanto. L'ordine non cambia.
+ *
+ * @param string[] $layouts Ingombri nell'ordine della galleria ('', 'wide', 'tall')
+ * @param int      $cols    Colonne su desktop
+ * @return string[] Ingombri corretti
+ */
+function custom_tools_gallery_resolve_orphans($layouts, $cols)
+{
+    $layouts = array_values($layouts);
+
+    if ($cols < 2 || !in_array('tall', $layouts, true)) {
+        return $layouts;
+    }
+
+    // Ogni giro toglie la prima 'tall' orfana e rifà la simulazione
+    for ($guard = 0; $guard < count($layouts); $guard++) {
+        $grid   = [];            // [riga][colonna] => indice della foto
+        $placed = [];            // indice => [riga, colonna]
+        $row = 0;
+        $col = 0;
+
+        foreach ($layouts as $i => $layout) {
+            $w = $layout === 'wide' ? $cols : 1;
+            $h = $layout === 'tall' ? 2 : 1;
+
+            // Primo posto libero dal cursore in avanti (come il browser, senza tornare indietro)
+            while (true) {
+                if ($col + $w > $cols) {
+                    $row++;
+                    $col = 0;
+                    continue;
+                }
+                $free = true;
+                for ($r = $row; $r < $row + $h && $free; $r++) {
+                    for ($c = $col; $c < $col + $w; $c++) {
+                        if (isset($grid[$r][$c])) {
+                            $free = false;
+                            break;
+                        }
+                    }
+                }
+                if ($free) {
+                    break;
+                }
+                $col++;
+            }
+
+            for ($r = $row; $r < $row + $h; $r++) {
+                for ($c = $col; $c < $col + $w; $c++) {
+                    $grid[$r][$c] = $i;
+                }
+            }
+            $placed[$i] = [$row, $col];
+            $col += $w;
+        }
+
+        // Prima 'tall' con una cella vuota nelle sue due righe
+        $orphan = null;
+        foreach ($layouts as $i => $layout) {
+            if ($layout !== 'tall') {
+                continue;
+            }
+            [$r0] = $placed[$i];
+            for ($r = $r0; $r < $r0 + 2 && $orphan === null; $r++) {
+                for ($c = 0; $c < $cols; $c++) {
+                    if (!isset($grid[$r][$c])) {
+                        $orphan = $i;
+                        break;
+                    }
+                }
+            }
+            if ($orphan !== null) {
+                break;
+            }
+        }
+
+        if ($orphan === null) {
+            return $layouts;
+        }
+
+        $layouts[$orphan] = '';
+    }
+
+    return $layouts;
 }
 
 
@@ -289,13 +388,13 @@ function custom_tools_gallery_item($id, $slideshow, $cfg = null, $index = 0)
     $cfg = $cfg ?: custom_tools_gallery_config([
         'layout' => 'modulare', 'colonne' => '', 'colonne_tablet' => '', 'colonne_mobile' => '',
         'breakpoint' => '', 'proporzione' => '', 'gap' => '', 'larghezza' => 'contenuto',
-        'riempi' => '', 'didascalie' => '', 'nitide' => '',
+        'didascalie' => '', 'nitide' => '',
     ]);
 
     // Ingombro: nel layout modulare lo sceglie la cliente (campo ACF);
     // nel "trio" la prima di ogni tre foto è la grande (come 'tall')
     if ($cfg['layout'] === 'modulare') {
-        $layout = custom_tools_gallery_layout($id);
+        $layout = $cfg['ingombri'][$index] ?? custom_tools_gallery_layout($id);
     } elseif ($cfg['layout'] === 'trio') {
         $layout = $index % 3 === 0 ? 'tall' : '';
     } else {
