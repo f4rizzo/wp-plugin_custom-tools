@@ -5,31 +5,45 @@
  * Shortcode: modular_gallery
  * =======================================================
  * Mostra una galleria immagini con supporto lightbox.
- * Parametri (serve "field" oppure "ids"):
+ *
+ * Sorgente delle foto (serve "field" oppure "ids"):
  * - field: nome di un campo ACF di tipo galleria (es. 'galleria_matrimonio_parte_1')
  * - ids: elenco di ID di immagini, nell'ordine voluto (es. "12,15,18"),
  *        per gallerie scelte a mano dentro articoli e pagine
  * - post: ID del post da cui leggere "field" (opzionale, default: post corrente)
  * - slideshow: nome del gruppo lightbox (opzionale, default: "gallery")
  *
+ * Layout (tutti facoltativi; senza, la galleria è identica a prima):
+ * - layout:     modulare (default) | colonna | coppia | trio | griglia | masonry
+ *     modulare  ingombro scelto foto per foto (wide/tall, campo ACF dell'immagine)
+ *     colonna   una foto per riga, sempre
+ *     coppia    due foto affiancate per riga, stessa altezza
+ *     trio      una grande a sinistra (due righe) + due impilate a destra, a ripetere
+ *     griglia   celle tutte uguali (vedi "proporzione")
+ *     masonry   colonne con le foto nelle proporzioni naturali (ordine per colonna)
+ * - colonne:        colonne su desktop (default 2; 1 per "colonna")
+ * - colonne_tablet: colonne da 768px al breakpoint (default 1)
+ * - colonne_mobile: colonne sotto i 768px (default 1)
+ * - breakpoint:     larghezza da cui valgono le colonne desktop: 1024 | 1280 | 1440 (default)
+ * - proporzione:    celle di "griglia"/"coppia": 3:2 | 4:3 | 1:1 | 4:5 | 2:3 | auto
+ * - gap:            spazio tra le foto in px (default 10)
+ * - larghezza:      contenuto (max 1138px, default) | piena (tutta la pagina)
+ * - riempi:         si = riempie i buchi della griglia (può cambiare l'ordine)
+ * - didascalie:     si = mostra la didascalia sotto la foto
+ * - nitide:         si = una foto non viene mai mostrata più grande della
+ *                   sua risoluzione (evita foto sgranate se il file è piccolo)
+ *
  * Esempi:
  *   [modular_gallery field="galleria_matrimonio_parte_1" slideshow="matrimonio"]
- *   [modular_gallery ids="745,746,747" slideshow="articolo"]
- *   [modular_gallery field="galleria_matrimonio_parte_2" post="733"]
+ *   [modular_gallery ids="745,746,747" layout="trio"]
+ *   [modular_gallery ids="…" layout="griglia" colonne="3" colonne_tablet="2" proporzione="4:5"]
+ *   [modular_gallery field="galleria_matrimonio_parte_2" post="733" breakpoint="1024"]
  *
- * Layout (vedi sass/shortcodes/_modular-gallery.scss nel tema):
- * - sotto i 1440px: una colonna, larga al massimo 1138px
- * - dai 1440px:     due colonne da 564px; 'wide' occupa due colonne,
- *                   'tall' due righe (cella ≈ 3:4)
- *
- * Ogni immagine esce con srcset/sizes, quindi il browser sceglie il file
- * adatto allo schermo. Quando l'ingombro scelto dalla cliente ('tall' o
- * 'wide') ha un orientamento diverso dalla foto, c'è un <picture> che usa
- * il ritaglio generato al caricamento (inc/images.php):
- *
- *   sotto i 1440px  foto intera, nel suo orientamento originale
- *                   (una colonna: l'ingombro non si applica)
- *   da 1440px       ritaglio, nella cella a due righe/colonne
+ * Ogni immagine esce con srcset e con "sizes" calcolato dal layout scelto
+ * (colonne, gap, larghezza, breakpoint): il browser scarica il file della
+ * misura giusta. Gli stili sono nel tema (sass/shortcodes/_modular-gallery.scss);
+ * colonne, gap e proporzione arrivano al CSS come variabili (--mg-*),
+ * quindi i valori stanno in un solo posto: i parametri dello shortcode.
  * =======================================================
  */
 
@@ -38,18 +52,32 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Breakpoint e larghezze della galleria, allineati al CSS del tema.
+ * Valori di default della galleria, allineati al CSS del tema.
  */
-const CUSTOM_TOOLS_GALLERY_BREAKPOINT = 1440; // due colonne da qui in su
+const CUSTOM_TOOLS_GALLERY_BREAKPOINT = 1440; // colonne desktop da qui in su
+const CUSTOM_TOOLS_GALLERY_TABLET     = 768;  // colonne tablet da qui in su
 const CUSTOM_TOOLS_GALLERY_WIDTH      = 1138; // larghezza utile (max-width 1158 - padding 2x10)
 const CUSTOM_TOOLS_GALLERY_COLUMN     = 564;  // (1138 - gap 10) / 2
+const CUSTOM_TOOLS_GALLERY_GAP        = 10;
+const CUSTOM_TOOLS_GALLERY_PADDING    = 20;   // padding laterale totale (2 x 10px)
 
 add_shortcode('modular_gallery', function ($atts) {
     $atts = shortcode_atts([
-        'field'     => '',        // es. 'galleria_matrimonio_parte_1'
-        'ids'       => '',        // es. '12,15,18' (alternativa a field)
-        'post'      => 0,         // post da cui leggere field (default: corrente)
-        'slideshow' => 'gallery', // nome usato nella lightbox
+        'field'          => '',        // es. 'galleria_matrimonio_parte_1'
+        'ids'            => '',        // es. '12,15,18' (alternativa a field)
+        'post'           => 0,         // post da cui leggere field (default: corrente)
+        'slideshow'      => 'gallery', // nome usato nella lightbox
+        'layout'         => 'modulare',
+        'colonne'        => '',
+        'colonne_tablet' => '',
+        'colonne_mobile' => '',
+        'breakpoint'     => '',
+        'proporzione'    => '',
+        'gap'            => '',
+        'larghezza'      => 'contenuto',
+        'riempi'         => '',
+        'didascalie'     => '',
+        'nitide'         => '',
     ], $atts);
 
     if (empty($atts['field']) && empty($atts['ids'])) {
@@ -74,13 +102,168 @@ add_shortcode('modular_gallery', function ($atts) {
     // invece di due query per ogni immagine.
     _prime_post_caches($ids, false, true);
 
+    $cfg = custom_tools_gallery_config($atts);
+
     $html = '';
-    foreach ($ids as $id) {
-        $html .= custom_tools_gallery_item($id, $atts['slideshow']);
+    foreach ($ids as $i => $id) {
+        $html .= custom_tools_gallery_item($id, $atts['slideshow'], $cfg, $i);
     }
 
-    return $html ? '<div class="modular-gallery">' . $html . '</div>' : '';
+    if ($html === '') {
+        return '';
+    }
+
+    return sprintf('<div class="%s"%s>%s</div>', esc_attr($cfg['class']), $cfg['style'], $html);
 });
+
+
+/**
+ * =======================================================
+ * Funzione Helper: custom_tools_gallery_config
+ * =======================================================
+ * Normalizza i parametri di layout e calcola classi, variabili CSS e
+ * "sizes". Con i parametri di default restituisce esattamente la
+ * configurazione storica (nessuna classe o stile in più).
+ *
+ * @param array $atts Attributi dello shortcode
+ * @return array
+ */
+function custom_tools_gallery_config($atts)
+{
+    $layouts = ['modulare', 'colonna', 'coppia', 'trio', 'griglia', 'masonry'];
+    $layout  = in_array($atts['layout'], $layouts, true) ? $atts['layout'] : 'modulare';
+
+    $int = function ($value, $default, $min, $max) {
+        return $value === '' ? $default : max($min, min($max, (int) $value));
+    };
+
+    // Colonne per dispositivo: alcuni layout le fissano
+    $default_cols = $layout === 'colonna' ? 1 : 2;
+    $cols         = $int($atts['colonne'], $default_cols, 1, 6);
+    $cols_tablet  = $int($atts['colonne_tablet'], 1, 1, 6);
+    $cols_mobile  = $int($atts['colonne_mobile'], 1, 1, 4);
+
+    if ($layout === 'colonna') {
+        $cols = $cols_tablet = $cols_mobile = 1;
+    } elseif (in_array($layout, ['coppia', 'trio'], true)) {
+        $cols = 2;
+    }
+
+    // Breakpoint: solo i valori previsti dal CSS (le media query non accettano variabili)
+    $breakpoint = in_array((int) $atts['breakpoint'], [1024, 1280, 1440], true) ? (int) $atts['breakpoint'] : CUSTOM_TOOLS_GALLERY_BREAKPOINT;
+    $gap        = $int($atts['gap'], CUSTOM_TOOLS_GALLERY_GAP, 0, 80);
+    $full       = $atts['larghezza'] === 'piena';
+
+    // Proporzione delle celle: "3:2" → 1.5
+    $ratio = null;
+    if (preg_match('/^(\d+(?:\.\d+)?)[:\/](\d+(?:\.\d+)?)$/', trim((string) $atts['proporzione']), $m) && (float) $m[2] > 0) {
+        $ratio = (float) $m[1] / (float) $m[2];
+    } elseif ($layout === 'griglia' || ($layout === 'coppia' && $atts['proporzione'] !== 'auto')) {
+        $ratio = $layout === 'coppia' ? 4 / 5 : 3 / 2;
+    }
+
+    $is_default = $layout === 'modulare'
+        && $cols === 2 && $cols_tablet === 1 && $cols_mobile === 1
+        && $breakpoint === CUSTOM_TOOLS_GALLERY_BREAKPOINT
+        && $gap === CUSTOM_TOOLS_GALLERY_GAP
+        && !$full && $ratio === null
+        && $atts['riempi'] !== 'si' && $atts['didascalie'] !== 'si' && $atts['nitide'] !== 'si';
+
+    // Classi: con la configurazione di default solo "modular-gallery", come sempre
+    $class = 'modular-gallery';
+    $style = '';
+
+    if (!$is_default) {
+        $class .= ' modular-gallery--' . $layout . ' modular-gallery--parametrica';
+        $class .= $full ? ' modular-gallery--piena' : '';
+        $class .= $atts['riempi'] === 'si' ? ' modular-gallery--riempi' : '';
+        $class .= $atts['didascalie'] === 'si' ? ' modular-gallery--didascalie' : '';
+        $class .= $atts['nitide'] === 'si' ? ' modular-gallery--nitide' : '';
+        $class .= $ratio ? ' modular-gallery--proporzione' : '';
+        $class .= ' modular-gallery--bp-' . $breakpoint;
+
+        $vars = [
+            '--mg-colonne'   => $cols,
+            '--mg-colonne-t' => $cols_tablet,
+            '--mg-colonne-m' => $cols_mobile,
+            '--mg-gap'       => $gap . 'px',
+        ];
+        if ($ratio) {
+            $vars['--mg-proporzione'] = round($ratio, 4);
+        }
+
+        $style = ' style="' . esc_attr(implode(';', array_map(function ($k, $v) {
+            return $k . ':' . $v;
+        }, array_keys($vars), $vars))) . '"';
+    }
+
+    return [
+        'layout'      => $layout,
+        'default'     => $is_default,
+        'cols'        => $cols,
+        'cols_tablet' => $cols_tablet,
+        'cols_mobile' => $cols_mobile,
+        'breakpoint'  => $breakpoint,
+        'gap'         => $gap,
+        'full'        => $full,
+        'ratio'       => $ratio,
+        'captions'    => $atts['didascalie'] === 'si',
+        'sharp'       => $atts['nitide'] === 'si',
+        'class'       => $class,
+        'style'       => $style,
+    ];
+}
+
+
+/**
+ * =======================================================
+ * Funzione Helper: custom_tools_gallery_sizes
+ * =======================================================
+ * Attributo "sizes" per una cella che occupa $span colonne, calcolato
+ * dai parametri: è ciò che decide quale file scarica il browser, quindi
+ * la nitidezza. Larghezza utile: 1138px (contenuto) o 100vw (piena),
+ * meno il padding; per ogni dispositivo (colonne - span) gap.
+ *
+ * @param array $cfg  Configurazione (custom_tools_gallery_config)
+ * @param int   $span Colonne occupate su desktop (1 o tutte)
+ * @return string
+ */
+function custom_tools_gallery_sizes($cfg, $span = 1)
+{
+    $pad = CUSTOM_TOOLS_GALLERY_PADDING;
+    $max = CUSTOM_TOOLS_GALLERY_WIDTH;
+
+    $width = function ($cols, $span, $viewport_min) use ($cfg, $pad, $max) {
+        $span  = min($span, $cols);
+        $gaps  = ($cols - 1) * $cfg['gap'];
+        // Contenuto: oltre 1158px la galleria è ferma a 1138px → valore fisso
+        if (!$cfg['full'] && $viewport_min >= $max + $pad) {
+            return (int) round((($max - $gaps) / $cols) * $span + ($span - 1) * $cfg['gap']) . 'px';
+        }
+        if ($cols === 1) {
+            return 'calc(100vw - ' . $pad . 'px)';
+        }
+        return sprintf('calc((100vw - %dpx) * %s)', $pad + $gaps, rtrim(rtrim(number_format($span / $cols, 4, '.', ''), '0'), '.'));
+    };
+
+    $desktop = $width($cfg['cols'], $span, $cfg['breakpoint']);
+    $tablet  = $width($cfg['cols_tablet'], 1, CUSTOM_TOOLS_GALLERY_TABLET);
+    $mobile  = $width($cfg['cols_mobile'], 1, 0);
+
+    // Tablet a una colonna nel layout "contenuto": il massimo è 1138px
+    if (!$cfg['full'] && $cfg['cols_tablet'] === 1) {
+        return sprintf(
+            '(min-width: %dpx) %s, (min-width: %dpx) %dpx, %s',
+            $cfg['breakpoint'],
+            $desktop,
+            $max + $pad,
+            $max,
+            $cfg['cols_mobile'] === 1 ? 'calc(100vw - ' . $pad . 'px)' : $mobile
+        );
+    }
+
+    return sprintf('(min-width: %dpx) %s, (min-width: %dpx) %s, %s', $cfg['breakpoint'], $desktop, CUSTOM_TOOLS_GALLERY_TABLET, $tablet, $mobile);
+}
 
 
 /**
@@ -89,11 +272,13 @@ add_shortcode('modular_gallery', function ($atts) {
  * =======================================================
  * Markup di una singola immagine della galleria.
  *
- * @param int    $id        ID dell'allegato.
- * @param string $slideshow Gruppo della lightbox.
+ * @param int        $id        ID dell'allegato.
+ * @param string     $slideshow Gruppo della lightbox.
+ * @param array|null $cfg       Configurazione (default: quella storica)
+ * @param int        $index     Posizione nella galleria (per "trio")
  * @return string
  */
-function custom_tools_gallery_item($id, $slideshow)
+function custom_tools_gallery_item($id, $slideshow, $cfg = null, $index = 0)
 {
     $metadata = wp_get_attachment_metadata($id);
 
@@ -101,15 +286,35 @@ function custom_tools_gallery_item($id, $slideshow)
         return '';
     }
 
-    $layout = custom_tools_gallery_layout($id);
-    $bp     = CUSTOM_TOOLS_GALLERY_BREAKPOINT;
-    $full   = CUSTOM_TOOLS_GALLERY_WIDTH;
-    $col    = CUSTOM_TOOLS_GALLERY_COLUMN;
+    $cfg = $cfg ?: custom_tools_gallery_config([
+        'layout' => 'modulare', 'colonne' => '', 'colonne_tablet' => '', 'colonne_mobile' => '',
+        'breakpoint' => '', 'proporzione' => '', 'gap' => '', 'larghezza' => 'contenuto',
+        'riempi' => '', 'didascalie' => '', 'nitide' => '',
+    ]);
 
-    // Larghezza mostrata (sizes): 'wide' resta a tutta larghezza anche su due colonne
-    $sizes = $layout === 'wide'
-        ? sprintf('(min-width: %1$dpx) %1$dpx, calc(100vw - 20px)', $full)
-        : sprintf('(min-width: %dpx) %dpx, (min-width: %dpx) %dpx, calc(100vw - 20px)', $bp, $col, $full + 20, $full);
+    // Ingombro: nel layout modulare lo sceglie la cliente (campo ACF);
+    // nel "trio" la prima di ogni tre foto è la grande (come 'tall')
+    if ($cfg['layout'] === 'modulare') {
+        $layout = custom_tools_gallery_layout($id);
+    } elseif ($cfg['layout'] === 'trio') {
+        $layout = $index % 3 === 0 ? 'tall' : '';
+    } else {
+        $layout = '';
+    }
+
+    if ($cfg['default']) {
+        // Configurazione storica: stessi "sizes" di sempre
+        $bp   = CUSTOM_TOOLS_GALLERY_BREAKPOINT;
+        $full = CUSTOM_TOOLS_GALLERY_WIDTH;
+        $col  = CUSTOM_TOOLS_GALLERY_COLUMN;
+
+        // Larghezza mostrata (sizes): 'wide' resta a tutta larghezza anche su due colonne
+        $sizes = $layout === 'wide'
+            ? sprintf('(min-width: %1$dpx) %1$dpx, calc(100vw - 20px)', $full)
+            : sprintf('(min-width: %dpx) %dpx, (min-width: %dpx) %dpx, calc(100vw - 20px)', $bp, $col, $full + 20, $full);
+    } else {
+        $sizes = custom_tools_gallery_sizes($cfg, $layout === 'wide' ? $cfg['cols'] : 1);
+    }
 
     // Testo alternativo: quello dell'immagine; se la cliente non l'ha compilato,
     // il titolo del matrimonio (meglio di un alt vuoto, per accessibilità e SEO)
@@ -126,8 +331,13 @@ function custom_tools_gallery_item($id, $slideshow)
     // Allineamento scelto dalla cliente: vale quando il CSS adatta la foto alla
     // cella senza un ritaglio dedicato (es. foto verticale in una cella 'tall')
     $object_position = custom_tools_gallery_object_position(custom_tools_gallery_crop_position($id));
-    if ($layout && $object_position) {
+    if (($layout || $cfg['ratio']) && $object_position) {
         $attr['style'] = 'object-position: ' . $object_position;
+    }
+
+    // Foto nitide: mai più larga della sua risoluzione
+    if ($cfg['sharp']) {
+        $attr['style'] = trim(($attr['style'] ?? '') . '; max-width: ' . (int) $metadata['width'] . 'px', '; ');
     }
 
     $img = wp_get_attachment_image($id, 'large', false, $attr);
@@ -136,8 +346,15 @@ function custom_tools_gallery_item($id, $slideshow)
         return '';
     }
 
-    $source = custom_tools_gallery_crop_source($id, $metadata, $layout);
+    $source = custom_tools_gallery_crop_source($id, $metadata, $layout, $cfg);
     $media  = $source ? '<picture>' . $source . $img . '</picture>' : $img;
+
+    if ($cfg['captions']) {
+        $caption = wp_get_attachment_caption($id);
+        if ($caption) {
+            $media .= '<span class="modular-gallery__didascalia">' . esc_html($caption) . '</span>';
+        }
+    }
 
     $class = 'modular-gallery__item' . ($layout ? ' ' . $layout : '');
 
@@ -155,17 +372,19 @@ function custom_tools_gallery_item($id, $slideshow)
  * =======================================================
  * Funzione Helper: custom_tools_gallery_crop_source
  * =======================================================
- * <source> con il ritaglio per l'ingombro scelto, valido dai 1440px (dove la
- * cella 'tall' o 'wide' ha davvero quella forma). Stringa vuota se l'immagine non ha
- * ritagli per quell'ingombro (la foto ha già l'orientamento giusto): in quel
- * caso il CSS adatta la foto con object-fit.
+ * <source> con il ritaglio per l'ingombro scelto, valido dal breakpoint
+ * delle colonne desktop (dove la cella 'tall' o 'wide' ha davvero quella
+ * forma). Stringa vuota se l'immagine non ha ritagli per quell'ingombro
+ * (la foto ha già l'orientamento giusto): in quel caso il CSS adatta la
+ * foto con object-fit.
  *
- * @param int    $id
- * @param array  $metadata
- * @param string $layout
+ * @param int        $id
+ * @param array      $metadata
+ * @param string     $layout
+ * @param array|null $cfg
  * @return string
  */
-function custom_tools_gallery_crop_source($id, $metadata, $layout)
+function custom_tools_gallery_crop_source($id, $metadata, $layout, $cfg = null)
 {
     if (!$layout) {
         return '';
@@ -186,13 +405,22 @@ function custom_tools_gallery_crop_source($id, $metadata, $layout)
     $srcset = implode(', ', $srcset);
 
     $largest = $metadata['sizes'][end($names)];
-    $desktop = $layout === 'tall' ? CUSTOM_TOOLS_GALLERY_COLUMN : CUSTOM_TOOLS_GALLERY_WIDTH;
+
+    if (!$cfg || $cfg['default']) {
+        $breakpoint = CUSTOM_TOOLS_GALLERY_BREAKPOINT;
+        $desktop    = ($layout === 'tall' ? CUSTOM_TOOLS_GALLERY_COLUMN : CUSTOM_TOOLS_GALLERY_WIDTH) . 'px';
+    } else {
+        $breakpoint = $cfg['breakpoint'];
+        $desktop    = custom_tools_gallery_sizes(['cols_tablet' => $cfg['cols'], 'cols_mobile' => $cfg['cols'], 'breakpoint' => $breakpoint] + $cfg, $layout === 'wide' ? $cfg['cols'] : 1);
+        // Basta la parte desktop: <source> vale solo dal breakpoint
+        $desktop = preg_replace('/^\(min-width: \d+px\) ([^,]+),.*$/', '$1', $desktop);
+    }
 
     return sprintf(
         '<source media="%s" srcset="%s" sizes="%s" type="%s" width="%d" height="%d">',
-        esc_attr('(min-width: ' . CUSTOM_TOOLS_GALLERY_BREAKPOINT . 'px)'),
+        esc_attr('(min-width: ' . $breakpoint . 'px)'),
         esc_attr($srcset),
-        esc_attr($desktop . 'px'),
+        esc_attr($desktop),
         esc_attr($largest['mime-type'] ?? 'image/jpeg'),
         (int) $largest['width'],
         (int) $largest['height']

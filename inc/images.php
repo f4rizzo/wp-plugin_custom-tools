@@ -499,3 +499,44 @@ add_action('wp_head', function () {
         esc_url(custom_tools_large_image_url($image_id))
     );
 }, 2);
+
+
+/**
+ * =======================================================
+ * 6. Avviso per le foto a bassa risoluzione
+ * =======================================================
+ * Nella Libreria media (dettagli dell'immagine) indica se la foto è
+ * troppo piccola per essere mostrata nitida a tutta larghezza della
+ * galleria (1138px, il doppio sugli schermi retina). Le foto importate
+ * dal vecchio sito sono spesso a 1024px.
+ */
+add_filter('attachment_fields_to_edit', function ($fields, $post) {
+    if (!wp_attachment_is_image($post->ID)) {
+        return $fields;
+    }
+
+    $source = wp_get_original_image_path($post->ID);
+    $size   = $source && file_exists($source) ? wp_getimagesize($source) : false;
+
+    if (!$size) {
+        return $fields;
+    }
+
+    $width = (int) $size[0];
+
+    if ($width >= 2048) {
+        $note = sprintf('%d px — ok per tutti gli schermi.', $width);
+    } elseif ($width >= 1200) {
+        $note = sprintf('%d px — nitida su schermi normali, un po\' morbida a tutta larghezza su retina.', $width);
+    } else {
+        $note = sprintf('%d px — bassa: a tutta larghezza risulta sgranata. Meglio ricaricare l\'originale (almeno 2048 px).', $width);
+    }
+
+    $fields['custom_tools_risoluzione'] = [
+        'label' => 'Risoluzione originale',
+        'input' => 'html',
+        'html'  => '<span' . ($width < 1200 ? ' style="color:#b32d2e;font-weight:600"' : '') . '>' . esc_html($note) . '</span>',
+    ];
+
+    return $fields;
+}, 20, 2);

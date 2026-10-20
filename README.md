@@ -225,6 +225,31 @@ Attributi (serve `field` oppure `ids`):
 [modular_gallery field="galleria_matrimonio_parte_2" post="733"]
 ```
 
+Layout (tutti facoltativi; **senza, l'output è identico byte per byte a prima**):
+
+| Parametro | Valori | Default |
+|---|---|---|
+| `layout` | `modulare` (ingombro wide/tall foto per foto) · `colonna` · `coppia` · `trio` (una grande + due impilate) · `griglia` (celle uguali) · `masonry` (proporzioni naturali, ordine per colonna) | `modulare` |
+| `colonne` / `colonne_tablet` / `colonne_mobile` | 1–6 / 1–6 / 1–4 | 2 / 1 / 1 |
+| `breakpoint` | da dove valgono le colonne desktop: `1024` · `1280` · `1440` | `1440` |
+| `proporzione` | celle di `griglia`/`coppia`: `3:2` · `4:3` · `1:1` · `4:5` · `2:3` · `auto` | griglia 3:2, coppia 4:5 |
+| `gap` | spazio in px | `10` |
+| `larghezza` | `contenuto` (max 1138px) · `piena` | `contenuto` |
+| `riempi` | `si` = riempie i buchi (l'ordine può cambiare) | — |
+| `didascalie` | `si` = didascalia sotto la foto | — |
+| `nitide` | `si` = mai più larga della risoluzione del file | — |
+
+```text
+[modular_gallery ids="…" layout="trio" breakpoint="1024"]
+[modular_gallery ids="…" layout="griglia" colonne="3" colonne_tablet="2" proporzione="4:5"]
+[modular_gallery field="galleria_matrimonio_parte_1" breakpoint="1024" riempi="si"]
+```
+
+L'attributo `sizes` di ogni foto è calcolato dai parametri (colonne, gap, larghezza,
+breakpoint): è ciò che fa scaricare al browser il file della misura giusta.
+Colonne, gap e proporzione arrivano al CSS come variabili `--mg-*`; il breakpoint
+come classe `modular-gallery--bp-*`. Pagina di prova privata: `/test-gallerie/`.
+
 Comportamento:
 
 - legge gli ID delle immagini dal campo gallery del post corrente e fa il prime
@@ -268,6 +293,12 @@ non sono shortcode e riusano gli elementi esistenti (classi `title-Literata-md` 
 `title-Anton-lg` / `header-title`, `[modular_gallery]`) e, per pulsanti e colori,
 il Kit Elementor (`.elementor-button`, colori globali): per ora è l'unica fonte di
 verità, da spostare nel tema in un'ottimizzazione futura.
+
+#### Avviso risoluzione nella Libreria media
+
+Nei dettagli di ogni immagine compare "Risoluzione originale" con un giudizio:
+sotto i 1200px la foto risulta sgranata a tutta larghezza (succede con le foto
+importate dal vecchio sito, spesso a 1024px).
 
 ### 7. Helper immagini per la galleria modulare
 
