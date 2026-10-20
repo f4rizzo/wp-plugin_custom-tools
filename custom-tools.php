@@ -13,6 +13,10 @@ if (!defined('ABSPATH')) exit;
 // Controllo dipendenze (ACF PRO / Elementor) + avviso in bacheca
 require_once plugin_dir_path(__FILE__) . 'inc/dependencies.php';
 
+// Pipeline immagini: soglia 2048px, WebP, formati, crop della gallery.
+// Non usa funzioni ACF, quindi si carica sempre.
+require_once plugin_dir_path(__FILE__) . 'inc/images.php';
+
 /**
  * =======================================================
  * Caricamento delle funzionalità
@@ -60,43 +64,3 @@ add_filter('acf/settings/load_json', function ($paths) {
     $paths[] = plugin_dir_path(__FILE__) . 'assets/acf-json';
     return $paths;
 });
-
-
-/**
- * ======================================================================================
- * 1. Registra nuovi formati immagine
- * ======================================================================================
- *
- * Questi formati vengono usati per ottimizzare il caricamento
- * delle immagini nelle gallerie:
- * - portfolio_thumb: thumbnail da 454px per anteprime piccole.
- * - gallery_wide: formato wide 800x400px con crop.
- * - gallery_tall: formato tall 400x800px con crop.
- */
-
-add_action('after_setup_theme', function () {
-
-    // Thumbnail per piccole anteprime (mantiene proporzioni, larghezza max 454px)
-    add_image_size('portfolio_thumb', 454, 0, false); // true = crop / false = proporzioni originali
-
-    // Formati specifici per modular gallery
-    add_image_size('gallery_wide', 1480, 0, false);  // Wide format - immagine su due colonne
-    add_image_size('gallery_tall', 0, 1200, false);  // Tall format - immagine su due righe
-
-    // Formati futuri (commentati per ora)
-    // add_image_size('gallery_square', 400, 400, true); // Quadrato
-    // add_image_size('gallery_portrait', 400, 600, true); // Ritratto
-    // add_image_size('gallery_landscape', 600, 400, true); // Paesaggio
-});
-
-
-// Mostrare i formati nel Media Picker
-add_filter('image_size_names_choose', 'aggiungi_dimensioni_personalizzate');
-function aggiungi_dimensioni_personalizzate($sizes)
-{
-    return array_merge($sizes, [
-        'portfolio_thumb'   => 'Portfolio Thumb - 454px',
-        'gallery_wide'      => 'Gallery Wide - 1480',
-        'gallery_tall'      => 'Gallery Tall - 1200h',
-    ]);
-}

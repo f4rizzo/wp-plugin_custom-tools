@@ -38,13 +38,56 @@
             "acfe_permissions": "",
             "allow_in_bindings": 0,
             "ui": 0,
-            "acfe_field_group_condition": 0,
             "ajax": 0,
             "create_options": 0,
             "save_options": 0,
             "allow_custom": 0,
             "search_placeholder": "",
             "min": ""
+        },
+        {
+            "key": "field_bf54a05c6a726",
+            "label": "Allineamento ritaglio",
+            "name": "gallery_crop_position",
+            "aria-label": "",
+            "type": "select",
+            "instructions": "Quale parte della foto mostrare quando l'ingombro la ritaglia: Long su una foto orizzontale (sinistra \/ centro \/ destra), Wide su una foto verticale (alto \/ centro \/ basso). Il ritaglio si aggiorna al salvataggio.",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_688794fa3b2bb",
+                        "operator": "!=empty"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "choices": {
+                "center": "Centro",
+                "left": "Sinistra (foto orizzontali)",
+                "right": "Destra (foto orizzontali)",
+                "top": "Alto (foto verticali)",
+                "bottom": "Basso (foto verticali)"
+            },
+            "default_value": "center",
+            "return_format": "value",
+            "allow_null": 0,
+            "multiple": 0,
+            "ui": 0,
+            "ajax": 0,
+            "placeholder": "",
+            "create_options": 0,
+            "save_options": 0,
+            "allow_custom": 0,
+            "search_placeholder": "",
+            "prepend": "",
+            "append": "",
+            "min": "",
+            "max": ""
         }
     ],
     "location": [
@@ -52,7 +95,7 @@
             {
                 "param": "attachment",
                 "operator": "==",
-                "value": "image\/jpeg"
+                "value": "image"
             }
         ]
     ],
@@ -65,6 +108,7 @@
     "active": true,
     "description": "",
     "show_in_rest": 0,
+    "display_title": "",
     "acfe_autosync": [
         "json"
     ],
@@ -73,5 +117,5 @@
     "acfe_permissions": "",
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1755432202
+    "modified": 1792275735
 }
