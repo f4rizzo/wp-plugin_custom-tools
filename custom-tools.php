@@ -17,6 +17,9 @@ require_once plugin_dir_path(__FILE__) . 'inc/dependencies.php';
 // Non usa funzioni ACF, quindi si carica sempre.
 require_once plugin_dir_path(__FILE__) . 'inc/images.php';
 
+// Comandi WP-CLI (wp custom-tools …): caricati solo da riga di comando
+require_once plugin_dir_path(__FILE__) . 'inc/cli.php';
+
 /**
  * =======================================================
  * Caricamento delle funzionalità
