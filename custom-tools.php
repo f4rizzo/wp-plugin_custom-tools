@@ -20,6 +20,10 @@ require_once plugin_dir_path(__FILE__) . 'inc/images.php';
 // Comandi WP-CLI (wp custom-tools …): caricati solo da riga di comando
 require_once plugin_dir_path(__FILE__) . 'inc/cli.php';
 
+// Funzioni dei template classici del nuovo design e shortcode [dlc_instagram].
+// Non usano funzioni ACF.
+require_once plugin_dir_path(__FILE__) . 'shortcodes/dlc-blocchi.php';
+
 /**
  * =======================================================
  * Caricamento delle funzionalità
