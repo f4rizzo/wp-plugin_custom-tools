@@ -250,6 +250,28 @@ breakpoint): è ciò che fa scaricare al browser il file della misura giusta.
 Colonne, gap e proporzione arrivano al CSS come variabili `--mg-*`; il breakpoint
 come classe `modular-gallery--bp-*`. Pagina di prova privata: `/test-gallerie/`.
 
+**Stili e impostazioni** (tutto nel plugin, il tema non serve per la struttura):
+
+| File | Ruolo |
+|---|---|
+| `assets/scss/_modular-gallery-settings.scss` | **Unica fonte dei valori**: `max-width`, `padding`, `gap`, breakpoint tablet e desktop, breakpoint ammessi, colonne di default, misure delle didascalie. Lo legge lo SCSS e lo legge anche il PHP (`custom_tools_gallery_settings()`), che ne ricava le costanti `CUSTOM_TOOLS_GALLERY_*` usate per `sizes`. |
+| `assets/scss/modular-gallery.scss` | Struttura della galleria. Ogni valore è `var(--mg-*, default)`: il default viene dalle impostazioni. |
+| `assets/css/modular-gallery.css` | Compilato (versionato), caricato su `wp_enqueue_scripts` con priorità 15, prima del CSS del tema. |
+
+- Per cambiare un valore: si modifica solo `_modular-gallery-settings.scss` e si
+  ricompila. Nel file: una variabile per riga (`$mg-nome: valore;`), senza
+  espressioni Sass, perché il PHP legge il testo.
+- Aggiungere un valore a `$mg-breakpoints` crea da solo la classe
+  `modular-gallery--bp-*` e lo rende accettato dal parametro `breakpoint`.
+- Il tema cambia solo l'aspetto, impostando variabili su `.modular-gallery`
+  (oggi `--mg-didascalia-font` e `--mg-didascalia-colore`, in
+  `hello-theme-child/sass/shortcodes/_modular-gallery.scss`). Se il tema cambia
+  `--mg-gap` o `--mg-max-width`, i `sizes` calcolati dal PHP restano quelli delle
+  impostazioni: meglio cambiare le impostazioni.
+- Compilazione: Live Sass Compiler (configurato in `.vscode/settings.json` del
+  repository principale) oppure
+  `npx sass@1.77.8 --no-source-map --style=expanded assets/scss/modular-gallery.scss assets/css/modular-gallery.css`.
+
 Comportamento:
 
 - legge gli ID delle immagini dal campo gallery del post corrente e fa il prime
@@ -264,8 +286,7 @@ Comportamento:
 - `alt`: quello dell'immagine, se vuoto il titolo del matrimonio
 - link della lightbox: formato 2048 (`custom_tools_large_image_url()`)
 
-Layout e file scelti (larghezze replicate nelle costanti `CUSTOM_TOOLS_GALLERY_*`
-e nel tema in `sass/shortcodes/_modular-gallery.scss`):
+Layout e file scelti (valori di default, da `_modular-gallery-settings.scss`):
 
 | Schermo | Layout | Ingombro con orientamento diverso dalla foto |
 |---|---|---|
@@ -473,6 +494,10 @@ custom-tools/
 |  `- modular-gallery.php
 `- assets/
    |- acf-json/
+   |- scss/
+   |  |- _modular-gallery-settings.scss   (valori della galleria: unica fonte)
+   |  `- modular-gallery.scss
+   |- css/modular-gallery.css             (compilato)
    `- js/custom-tools.js
 ```
 
@@ -481,8 +506,7 @@ custom-tools/
 - `inc/compat-acfe.php` è un correttivo **temporaneo**: ACF Pro 6.8 ha reso privata `acf_field_checkbox::$_values` e ACFE Pro 0.9.2.3 la scrive nel suo render del checkbox, generando un errore fatale in admin. Il file stacca il render di ACFE e rimette quello di ACF, solo se rileva l'incompatibilità. Dopo l'aggiornamento di ACFE va eliminato, insieme al `require` in `custom-tools.php`.
 - `assets/js/custom-tools.js` e vuoto (nessuna logica JS attiva).
 - il file `inc/register-cpt.php` non registra CPT in PHP: contiene solo query Elementor.
-- non ci sono CSS front-end nel plugin per `.modular-gallery` o `.matrimonio-info`: lo styling e demandato a tema/template.
-- il campo attachment `gallery_image_size` e limitato alla location `image/jpeg` nel JSON corrente.
+- il CSS front-end del plugin riguarda solo `.modular-gallery` (`assets/css/modular-gallery.css`); lo stile di `.matrimonio-info` è nel tema.
 
 ## Checklist QA rapida post deploy
 

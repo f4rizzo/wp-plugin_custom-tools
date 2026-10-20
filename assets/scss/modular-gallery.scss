@@ -1,0 +1,168 @@
+@use "sass:math";
+@use "modular-gallery-settings" as s;
+
+/*
+
+ * =======================================================
+ * Modular Gallery
+ * =======================================================
+
+ * Stili dello shortcode [modular_gallery] (shortcodes/modular-gallery.php).
+ * Si compila in assets/css/modular-gallery.css, caricato dal plugin.
+
+ * Tutti i valori vengono da _modular-gallery-settings.scss. Ogni regola
+ * usa una variabile CSS --mg-* con il valore delle impostazioni come
+ * default: lo shortcode imposta le variabili sulla singola galleria
+ * (colonne, gap, proporzione) e il tema può cambiarle senza toccare la
+ * struttura (es. .modular-gallery { --mg-didascalia-colore: … }).
+ * I breakpoint restano valori fissi: le media query non accettano variabili.
+
+ */
+
+// var(--mg-nome, default)
+@function mg($name, $default) {
+  @return var(--mg-#{$name}, #{$default});
+}
+
+.modular-gallery {
+  max-width: mg(max-width, s.$mg-max-width);
+  display: grid;
+  gap: mg(gap, s.$mg-gap);
+  grid-template-columns: 1fr; /* Su mobile una colonna */
+  padding: mg(padding, s.$mg-padding);
+  @media (min-width: s.$mg-breakpoint) {
+    grid-template-columns: repeat(mg(colonne, s.$mg-colonne), 1fr);
+  }
+
+  &__item {
+    display: block;
+  }
+
+  // <picture> non deve creare un box suo: l'immagine segue la cella
+  &__item picture {
+    display: contents;
+  }
+
+  &__item img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  @media (min-width: s.$mg-breakpoint) {
+    &__item.tall {
+      grid-row: span 2;
+      & img {
+        object-fit: cover;
+        height: 100%;
+      }
+    }
+    &__item.wide {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+
+/*
+
+ * =======================================================
+ * Modular Gallery — layout parametrici
+ * =======================================================
+
+ * Attivi solo quando lo shortcode riceve parametri di layout
+ * (classe .modular-gallery--parametrica). Variabili impostate dallo shortcode:
+ *   --mg-colonne (desktop) · --mg-colonne-t (tablet) · --mg-colonne-m (mobile)
+ *   --mg-gap · --mg-proporzione
+ * Il breakpoint desktop è una classe (.modular-gallery--bp-1024/1280/1440,
+ * una per ogni valore di $mg-breakpoints).
+
+ */
+
+$colonne: mg(colonne, s.$mg-colonne);
+$colonne-t: mg(colonne-t, s.$mg-colonne-tablet);
+$colonne-m: mg(colonne-m, s.$mg-colonne-mobile);
+$gap: mg(gap, s.$mg-gap);
+
+// Regole "desktop" di un breakpoint: colonne, ingombri wide/tall
+@mixin mg-desktop {
+  grid-template-columns: repeat($colonne, minmax(0, 1fr));
+  column-count: $colonne;
+
+  .modular-gallery__item.wide {
+    grid-column: 1 / -1;
+  }
+  .modular-gallery__item.tall {
+    grid-row: span 2;
+    img {
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+}
+
+// Masonry: colonne CSS, foto nelle proporzioni naturali.
+// Prima delle regole dei breakpoint, che poi impostano le colonne desktop.
+.modular-gallery--masonry.modular-gallery--parametrica {
+  display: block;
+  column-count: $colonne-m;
+  column-gap: $gap;
+
+  @media (min-width: s.$mg-tablet) {
+    column-count: $colonne-t;
+  }
+
+  .modular-gallery__item {
+    break-inside: avoid;
+    margin-bottom: $gap;
+  }
+}
+
+.modular-gallery--parametrica {
+  gap: $gap;
+  grid-template-columns: repeat($colonne-m, minmax(0, 1fr));
+
+  @media (min-width: s.$mg-tablet) {
+    grid-template-columns: repeat($colonne-t, minmax(0, 1fr));
+  }
+
+  // Annulla le regole del layout storico (colonne fisse dal breakpoint di default)
+  @media (min-width: s.$mg-breakpoint) {
+    grid-template-columns: repeat($colonne, minmax(0, 1fr));
+  }
+
+  @each $bp in s.$mg-breakpoints {
+    &.modular-gallery--bp-#{math.div($bp, 1px)} {
+      @media (min-width: $bp) {
+        @include mg-desktop;
+      }
+    }
+  }
+
+  // Tutta la larghezza della pagina
+  &.modular-gallery--piena {
+    max-width: none;
+  }
+
+  // Celle tutte uguali
+  &.modular-gallery--proporzione .modular-gallery__item:not(.tall) img {
+    aspect-ratio: var(--mg-proporzione, auto);
+    height: auto;
+    object-fit: cover;
+  }
+
+  // Didascalie sotto la foto
+  .modular-gallery__didascalia {
+    display: block;
+    margin-top: mg(didascalia-margine, s.$mg-didascalia-margine);
+    font-family: mg(didascalia-font, inherit);
+    font-size: mg(didascalia-dimensione, s.$mg-didascalia-dimensione);
+    line-height: mg(didascalia-interlinea, s.$mg-didascalia-interlinea);
+    color: mg(didascalia-colore, inherit);
+  }
+
+  // Foto nitide: se il file è più piccolo della cella resta centrato
+  &.modular-gallery--nitide img {
+    margin-inline: auto;
+  }
+}

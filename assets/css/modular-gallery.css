@@ -1,0 +1,182 @@
+@charset "UTF-8";
+/*
+
+ * =======================================================
+ * Modular Gallery — impostazioni (unica fonte dei valori)
+ * =======================================================
+
+ * Questi valori li leggono sia lo SCSS (modular-gallery.scss) sia il PHP
+ * dello shortcode (custom_tools_gallery_settings() in
+ * shortcodes/modular-gallery.php), che li usa per l'attributo "sizes",
+ * per i valori ammessi del parametro "breakpoint" e per i default.
+ * Si cambiano SOLO qui, poi si ricompila il CSS.
+
+ * Formato: una variabile per riga, `$mg-nome: valore;`, senza !default
+ * e senza espressioni (il PHP legge il testo, non esegue Sass).
+ * I valori in px e i numeri arrivano al PHP come interi; le liste
+ * separate da virgola come elenco di interi.
+
+ */
+/*
+
+ * =======================================================
+ * Modular Gallery
+ * =======================================================
+
+ * Stili dello shortcode [modular_gallery] (shortcodes/modular-gallery.php).
+ * Si compila in assets/css/modular-gallery.css, caricato dal plugin.
+
+ * Tutti i valori vengono da _modular-gallery-settings.scss. Ogni regola
+ * usa una variabile CSS --mg-* con il valore delle impostazioni come
+ * default: lo shortcode imposta le variabili sulla singola galleria
+ * (colonne, gap, proporzione) e il tema può cambiarle senza toccare la
+ * struttura (es. .modular-gallery { --mg-didascalia-colore: … }).
+ * I breakpoint restano valori fissi: le media query non accettano variabili.
+
+ */
+.modular-gallery {
+  max-width: var(--mg-max-width, 1158px);
+  display: grid;
+  gap: var(--mg-gap, 10px);
+  grid-template-columns: 1fr; /* Su mobile una colonna */
+  padding: var(--mg-padding, 10px);
+}
+@media (min-width: 1440px) {
+  .modular-gallery {
+    grid-template-columns: repeat(var(--mg-colonne, 2), 1fr);
+  }
+}
+.modular-gallery__item {
+  display: block;
+}
+.modular-gallery__item picture {
+  display: contents;
+}
+.modular-gallery__item img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+@media (min-width: 1440px) {
+  .modular-gallery__item.tall {
+    grid-row: span 2;
+  }
+  .modular-gallery__item.tall img {
+    object-fit: cover;
+    height: 100%;
+  }
+  .modular-gallery__item.wide {
+    grid-column: 1/-1;
+  }
+}
+
+/*
+
+ * =======================================================
+ * Modular Gallery — layout parametrici
+ * =======================================================
+
+ * Attivi solo quando lo shortcode riceve parametri di layout
+ * (classe .modular-gallery--parametrica). Variabili impostate dallo shortcode:
+ *   --mg-colonne (desktop) · --mg-colonne-t (tablet) · --mg-colonne-m (mobile)
+ *   --mg-gap · --mg-proporzione
+ * Il breakpoint desktop è una classe (.modular-gallery--bp-1024/1280/1440,
+ * una per ogni valore di $mg-breakpoints).
+
+ */
+.modular-gallery--masonry.modular-gallery--parametrica {
+  display: block;
+  column-count: var(--mg-colonne-m, 1);
+  column-gap: var(--mg-gap, 10px);
+}
+@media (min-width: 768px) {
+  .modular-gallery--masonry.modular-gallery--parametrica {
+    column-count: var(--mg-colonne-t, 1);
+  }
+}
+.modular-gallery--masonry.modular-gallery--parametrica .modular-gallery__item {
+  break-inside: avoid;
+  margin-bottom: var(--mg-gap, 10px);
+}
+
+.modular-gallery--parametrica {
+  gap: var(--mg-gap, 10px);
+  grid-template-columns: repeat(var(--mg-colonne-m, 1), minmax(0, 1fr));
+}
+@media (min-width: 768px) {
+  .modular-gallery--parametrica {
+    grid-template-columns: repeat(var(--mg-colonne-t, 1), minmax(0, 1fr));
+  }
+}
+@media (min-width: 1440px) {
+  .modular-gallery--parametrica {
+    grid-template-columns: repeat(var(--mg-colonne, 2), minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .modular-gallery--parametrica.modular-gallery--bp-1024 {
+    grid-template-columns: repeat(var(--mg-colonne, 2), minmax(0, 1fr));
+    column-count: var(--mg-colonne, 2);
+  }
+  .modular-gallery--parametrica.modular-gallery--bp-1024 .modular-gallery__item.wide {
+    grid-column: 1/-1;
+  }
+  .modular-gallery--parametrica.modular-gallery--bp-1024 .modular-gallery__item.tall {
+    grid-row: span 2;
+  }
+  .modular-gallery--parametrica.modular-gallery--bp-1024 .modular-gallery__item.tall img {
+    height: 100%;
+    object-fit: cover;
+  }
+}
+@media (min-width: 1280px) {
+  .modular-gallery--parametrica.modular-gallery--bp-1280 {
+    grid-template-columns: repeat(var(--mg-colonne, 2), minmax(0, 1fr));
+    column-count: var(--mg-colonne, 2);
+  }
+  .modular-gallery--parametrica.modular-gallery--bp-1280 .modular-gallery__item.wide {
+    grid-column: 1/-1;
+  }
+  .modular-gallery--parametrica.modular-gallery--bp-1280 .modular-gallery__item.tall {
+    grid-row: span 2;
+  }
+  .modular-gallery--parametrica.modular-gallery--bp-1280 .modular-gallery__item.tall img {
+    height: 100%;
+    object-fit: cover;
+  }
+}
+@media (min-width: 1440px) {
+  .modular-gallery--parametrica.modular-gallery--bp-1440 {
+    grid-template-columns: repeat(var(--mg-colonne, 2), minmax(0, 1fr));
+    column-count: var(--mg-colonne, 2);
+  }
+  .modular-gallery--parametrica.modular-gallery--bp-1440 .modular-gallery__item.wide {
+    grid-column: 1/-1;
+  }
+  .modular-gallery--parametrica.modular-gallery--bp-1440 .modular-gallery__item.tall {
+    grid-row: span 2;
+  }
+  .modular-gallery--parametrica.modular-gallery--bp-1440 .modular-gallery__item.tall img {
+    height: 100%;
+    object-fit: cover;
+  }
+}
+.modular-gallery--parametrica.modular-gallery--piena {
+  max-width: none;
+}
+.modular-gallery--parametrica.modular-gallery--proporzione .modular-gallery__item:not(.tall) img {
+  aspect-ratio: var(--mg-proporzione, auto);
+  height: auto;
+  object-fit: cover;
+}
+.modular-gallery--parametrica .modular-gallery__didascalia {
+  display: block;
+  margin-top: var(--mg-didascalia-margine, 0.5rem);
+  font-family: var(--mg-didascalia-font, inherit);
+  font-size: var(--mg-didascalia-dimensione, 0.8125rem);
+  line-height: var(--mg-didascalia-interlinea, 1.4);
+  color: var(--mg-didascalia-colore, inherit);
+}
+.modular-gallery--parametrica.modular-gallery--nitide img {
+  margin-inline: auto;
+}

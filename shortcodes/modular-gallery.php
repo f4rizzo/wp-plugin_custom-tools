@@ -43,9 +43,10 @@
  *
  * Ogni immagine esce con srcset e con "sizes" calcolato dal layout scelto
  * (colonne, gap, larghezza, breakpoint): il browser scarica il file della
- * misura giusta. Gli stili sono nel tema (sass/shortcodes/_modular-gallery.scss);
- * colonne, gap e proporzione arrivano al CSS come variabili (--mg-*),
- * quindi i valori stanno in un solo posto: i parametri dello shortcode.
+ * misura giusta. Gli stili sono nel plugin (assets/scss/modular-gallery.scss);
+ * larghezze, breakpoint e default stanno in assets/scss/_modular-gallery-settings.scss,
+ * letto anche da qui (custom_tools_gallery_settings()). Colonne, gap e
+ * proporzione della singola galleria arrivano al CSS come variabili (--mg-*).
  * =======================================================
  */
 
@@ -54,14 +55,84 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Valori di default della galleria, allineati al CSS del tema.
+ * =======================================================
+ * Funzione Helper: custom_tools_gallery_settings
+ * =======================================================
+ * Impostazioni della galleria, lette da assets/scss/_modular-gallery-settings.scss:
+ * è l'unica fonte dei valori, la stessa da cui si compila il CSS.
+ * Legge le righe `$mg-nome: valore;`: px e numeri diventano interi,
+ * le liste separate da virgola un array.
+ *
+ * @return array Es. ['max-width' => 1158, 'breakpoints' => [1024, 1280, 1440], …]
  */
-const CUSTOM_TOOLS_GALLERY_BREAKPOINT = 1440; // colonne desktop da qui in su
-const CUSTOM_TOOLS_GALLERY_TABLET     = 768;  // colonne tablet da qui in su
-const CUSTOM_TOOLS_GALLERY_WIDTH      = 1138; // larghezza utile (max-width 1158 - padding 2x10)
-const CUSTOM_TOOLS_GALLERY_COLUMN     = 564;  // (1138 - gap 10) / 2
-const CUSTOM_TOOLS_GALLERY_GAP        = 10;
-const CUSTOM_TOOLS_GALLERY_PADDING    = 20;   // padding laterale totale (2 x 10px)
+function custom_tools_gallery_settings()
+{
+    static $settings = null;
+
+    if ($settings !== null) {
+        return $settings;
+    }
+
+    $settings = [];
+    $file     = plugin_dir_path(__DIR__) . 'assets/scss/_modular-gallery-settings.scss';
+    $scss     = is_readable($file) ? (string) file_get_contents($file) : '';
+
+    preg_match_all('/^\$mg-([a-z0-9-]+)\s*:\s*([^;]+);/m', $scss, $matches, PREG_SET_ORDER);
+
+    foreach ($matches as $match) {
+        $values = array_map(function ($value) {
+            $value = trim($value);
+            return preg_match('/^-?\d+(px)?$/', $value) ? (int) $value : $value;
+        }, explode(',', $match[2]));
+
+        $settings[$match[1]] = count($values) > 1 ? $values : $values[0];
+    }
+
+    if (!$settings) {
+        error_log('custom-tools: impostazioni della modular_gallery non trovate in ' . $file);
+    }
+
+    return $settings;
+}
+
+/**
+ * Valori della galleria, calcolati dalle impostazioni (vedi sopra).
+ */
+$custom_tools_gallery = custom_tools_gallery_settings();
+$custom_tools_gallery_width = (int) ($custom_tools_gallery['max-width'] ?? 0) - 2 * (int) ($custom_tools_gallery['padding'] ?? 0);
+$custom_tools_gallery_cols  = max(1, (int) ($custom_tools_gallery['colonne'] ?? 1));
+
+define('CUSTOM_TOOLS_GALLERY_BREAKPOINT', (int) ($custom_tools_gallery['breakpoint'] ?? 0)); // colonne desktop da qui in su
+define('CUSTOM_TOOLS_GALLERY_TABLET', (int) ($custom_tools_gallery['tablet'] ?? 0));         // colonne tablet da qui in su
+define('CUSTOM_TOOLS_GALLERY_WIDTH', $custom_tools_gallery_width);                           // larghezza utile (max-width - padding 2 lati)
+define('CUSTOM_TOOLS_GALLERY_GAP', (int) ($custom_tools_gallery['gap'] ?? 0));
+define('CUSTOM_TOOLS_GALLERY_PADDING', 2 * (int) ($custom_tools_gallery['padding'] ?? 0));  // padding laterale totale
+define('CUSTOM_TOOLS_GALLERY_COLUMN', (int) (($custom_tools_gallery_width - ($custom_tools_gallery_cols - 1) * CUSTOM_TOOLS_GALLERY_GAP) / $custom_tools_gallery_cols)); // una colonna desktop
+define('CUSTOM_TOOLS_GALLERY_BREAKPOINTS', array_map('intval', (array) ($custom_tools_gallery['breakpoints'] ?? [])));
+define('CUSTOM_TOOLS_GALLERY_COLS', $custom_tools_gallery_cols);
+define('CUSTOM_TOOLS_GALLERY_COLS_TABLET', max(1, (int) ($custom_tools_gallery['colonne-tablet'] ?? 1)));
+define('CUSTOM_TOOLS_GALLERY_COLS_MOBILE', max(1, (int) ($custom_tools_gallery['colonne-mobile'] ?? 1)));
+
+unset($custom_tools_gallery, $custom_tools_gallery_width, $custom_tools_gallery_cols);
+
+/**
+ * Stili della galleria (assets/scss/modular-gallery.scss → assets/css/).
+ * Priorità 15: prima del CSS del tema (20), che può così cambiare le variabili --mg-*.
+ */
+add_action('wp_enqueue_scripts', function () {
+    $file = plugin_dir_path(__DIR__) . 'assets/css/modular-gallery.css';
+
+    if (!file_exists($file)) {
+        return;
+    }
+
+    wp_enqueue_style(
+        'custom-tools-modular-gallery',
+        plugin_dir_url(__DIR__) . 'assets/css/modular-gallery.css',
+        [],
+        (string) filemtime($file)
+    );
+}, 15);
 
 add_shortcode('modular_gallery', function ($atts) {
     $atts = shortcode_atts([
@@ -144,10 +215,10 @@ function custom_tools_gallery_config($atts)
     };
 
     // Colonne per dispositivo: alcuni layout le fissano
-    $default_cols = $layout === 'colonna' ? 1 : 2;
+    $default_cols = $layout === 'colonna' ? 1 : CUSTOM_TOOLS_GALLERY_COLS;
     $cols         = $int($atts['colonne'], $default_cols, 1, 6);
-    $cols_tablet  = $int($atts['colonne_tablet'], 1, 1, 6);
-    $cols_mobile  = $int($atts['colonne_mobile'], 1, 1, 4);
+    $cols_tablet  = $int($atts['colonne_tablet'], CUSTOM_TOOLS_GALLERY_COLS_TABLET, 1, 6);
+    $cols_mobile  = $int($atts['colonne_mobile'], CUSTOM_TOOLS_GALLERY_COLS_MOBILE, 1, 4);
 
     if ($layout === 'colonna') {
         $cols = $cols_tablet = $cols_mobile = 1;
@@ -156,7 +227,7 @@ function custom_tools_gallery_config($atts)
     }
 
     // Breakpoint: solo i valori previsti dal CSS (le media query non accettano variabili)
-    $breakpoint = in_array((int) $atts['breakpoint'], [1024, 1280, 1440], true) ? (int) $atts['breakpoint'] : CUSTOM_TOOLS_GALLERY_BREAKPOINT;
+    $breakpoint = in_array((int) $atts['breakpoint'], CUSTOM_TOOLS_GALLERY_BREAKPOINTS, true) ? (int) $atts['breakpoint'] : CUSTOM_TOOLS_GALLERY_BREAKPOINT;
     $gap        = $int($atts['gap'], CUSTOM_TOOLS_GALLERY_GAP, 0, 80);
     $full       = $atts['larghezza'] === 'piena';
 
@@ -169,7 +240,9 @@ function custom_tools_gallery_config($atts)
     }
 
     $is_default = $layout === 'modulare'
-        && $cols === 2 && $cols_tablet === 1 && $cols_mobile === 1
+        && $cols === CUSTOM_TOOLS_GALLERY_COLS
+        && $cols_tablet === CUSTOM_TOOLS_GALLERY_COLS_TABLET
+        && $cols_mobile === CUSTOM_TOOLS_GALLERY_COLS_MOBILE
         && $breakpoint === CUSTOM_TOOLS_GALLERY_BREAKPOINT
         && $gap === CUSTOM_TOOLS_GALLERY_GAP
         && !$full && $ratio === null
@@ -408,9 +481,10 @@ function custom_tools_gallery_item($id, $slideshow, $cfg = null, $index = 0)
         $col  = CUSTOM_TOOLS_GALLERY_COLUMN;
 
         // Larghezza mostrata (sizes): 'wide' resta a tutta larghezza anche su due colonne
+        $pad  = CUSTOM_TOOLS_GALLERY_PADDING;
         $sizes = $layout === 'wide'
-            ? sprintf('(min-width: %1$dpx) %1$dpx, calc(100vw - 20px)', $full)
-            : sprintf('(min-width: %dpx) %dpx, (min-width: %dpx) %dpx, calc(100vw - 20px)', $bp, $col, $full + 20, $full);
+            ? sprintf('(min-width: %1$dpx) %1$dpx, calc(100vw - %2$dpx)', $full, $pad)
+            : sprintf('(min-width: %dpx) %dpx, (min-width: %dpx) %dpx, calc(100vw - %dpx)', $bp, $col, $full + $pad, $full, $pad);
     } else {
         $sizes = custom_tools_gallery_sizes($cfg, $layout === 'wide' ? $cfg['cols'] : 1);
     }
