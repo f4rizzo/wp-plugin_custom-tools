@@ -46,6 +46,9 @@ add_action('plugins_loaded', function () {
     require_once $base . 'shortcodes/portfolio.php';
     require_once $base . 'shortcodes/modular-gallery.php';
 
+    // Eventi: post type a blocchi, blocchi ACF dlc/* (blocks/) e struttura iniziale
+    require_once $base . 'inc/eventi.php';
+
     // Correttivo temporaneo ACF 6.8 / ACFE 0.9.2.3 (checkbox), vedi file
     require_once $base . 'inc/compat-acfe.php';
 

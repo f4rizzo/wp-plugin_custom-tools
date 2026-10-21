@@ -6,7 +6,8 @@
  * =======================================================
  *
  * Funzioni PHP usate dai template nativi del tema (hello-theme-child:
- * header-dlc.php, single-post.php, home.php, page-templates/dlc-*.php).
+ * header-dlc.php, single-post.php, single-matrimonio.php, home.php,
+ * page-templates/dlc-*.php) e dai blocchi dlc/* degli eventi (blocks/).
  *
  * Riusano gli elementi già esistenti, senza duplicarli:
  *  - titoli:     classi del tema .title-Literata-md / .title-Anton-lg e
@@ -233,6 +234,146 @@ function dlc_hero_html($image_id, $corsivo = '', $maiuscolo = '', $opts = [])
         $img,
         $title
     );
+}
+
+
+
+/**
+ * =======================================================
+ * Sezioni della pagina di un matrimonio (o evento)
+ * =======================================================
+ * Un'unica fonte del markup, usata da:
+ *  - il template nativo single-matrimonio.php (dati dai campi ACF del post)
+ *  - i blocchi dlc/* della pagina a blocchi degli eventi (dati dai blocchi)
+ * Così le due pagine escono identiche per costruzione.
+ */
+
+/**
+ * Hero con i nomi: "Il matrimonio di / Nome e Nome". Senza i due nomi,
+ * solo il titolo del post in maiuscolo.
+ *
+ * @param int    $image_id Foto di sfondo
+ * @param string $nome1
+ * @param string $nome2
+ * @param string $titolo   Titolo del post (se mancano i nomi)
+ * @param string $corsivo  Riga in corsivo prima dei nomi
+ * @return string
+ */
+function dlc_sezione_hero_html($image_id, $nome1, $nome2, $titolo, $corsivo = 'Il matrimonio di')
+{
+    $nomi = $nome1 && $nome2;
+
+    return dlc_hero_html(
+        (int) $image_id,
+        $nomi ? $corsivo : '',
+        $nomi ? $nome1 . ' e ' . $nome2 : $titolo,
+        ['allinea' => 'left', 'velo' => '0.45']
+    );
+}
+
+/**
+ * Blocco di testo (intro o racconto), con i paragrafi di wpautop().
+ *
+ * @param string $testo  HTML del campo WYSIWYG, non formattato
+ * @param bool   $sempre Stampa il contenitore anche se il testo è vuoto
+ *                       (l'intro del template nativo lo ha sempre fatto)
+ * @return string
+ */
+function dlc_sezione_testo_html($testo, $sempre = false)
+{
+    $testo = (string) $testo;
+
+    if ($testo === '' && !$sempre) {
+        return '';
+    }
+
+    return '<div class="dlc-pagina__intro">' . wp_kses_post(wpautop($testo)) . '</div>';
+}
+
+/**
+ * Foto a tutta larghezza.
+ *
+ * @param int $image_id
+ * @return string
+ */
+function dlc_sezione_foto_larga_html($image_id)
+{
+    $img = dlc_img((int) $image_id, 'full', '100vw', ['class' => 'dlc-pagina__foto-larga-img']);
+
+    return $img !== '' ? '<figure class="dlc-pagina__foto-larga">' . $img . '</figure>' : '';
+}
+
+/**
+ * Voci della griglia informazioni: Venue, Luogo, Catering e le voci
+ * libere (etichetta + valore). Le voci incomplete vengono saltate.
+ *
+ * @param string $location
+ * @param string $luogo
+ * @param string $catering
+ * @param array  $altre    Elenco di [etichetta, valore]
+ * @return array Elenco di ['label' => …, 'value' => …]
+ */
+function dlc_info_voci($location, $luogo, $catering, $altre = [])
+{
+    $voci = [];
+
+    foreach (['Venue' => $location, 'Luogo' => $luogo, 'Catering' => $catering] as $label => $value) {
+        if ($value) {
+            $voci[] = ['label' => $label, 'value' => $value];
+        }
+    }
+
+    foreach ($altre as [$label, $value]) {
+        if ($label && $value) {
+            $voci[] = ['label' => $label, 'value' => $value];
+        }
+    }
+
+    return $voci;
+}
+
+/**
+ * Griglia delle informazioni (markup di [info_matrimonio]).
+ *
+ * @param array $voci Da dlc_info_voci()
+ * @return string Vuota se non ci sono voci
+ */
+function dlc_info_griglia_html($voci)
+{
+    if (!$voci) {
+        return '';
+    }
+
+    $html = '<div class="matrimonio-info">';
+    foreach ($voci as $voce) {
+        $html .= '<div class="matrimonio-info__item">'
+            . '<strong class="matrimonio-info__label">' . esc_html($voce['label']) . '</strong>'
+            . '<p class="matrimonio-info__value">' . esc_html($voce['value']) . '</p>'
+            . '</div>';
+    }
+
+    return $html . '</div>';
+}
+
+/**
+ * Galleria dentro il suo contenitore, con [modular_gallery].
+ *
+ * @param array $atts   Attributi dello shortcode (field/post oppure ids, layout…)
+ * @param bool  $sempre Stampa anche una galleria vuota (con il messaggio
+ *                      dello shortcode), come ha sempre fatto il template nativo
+ * @return string
+ */
+function dlc_sezione_galleria_html($atts, $sempre = false)
+{
+    if (!function_exists('custom_tools_modular_gallery_shortcode')) {
+        return '';
+    }
+
+    if (!$sempre && empty($atts['ids']) && empty($atts['field'])) {
+        return '';
+    }
+
+    return '<div class="dlc-pagina__galleria">' . custom_tools_modular_gallery_shortcode($atts) . '</div>';
 }
 
 

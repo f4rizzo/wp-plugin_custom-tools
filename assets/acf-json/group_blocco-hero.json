@@ -1,0 +1,79 @@
+{
+    "key": "group_blocco-hero",
+    "title": "Blocco: Hero con i nomi",
+    "fields": [
+        {
+            "key": "field_blocco_hero_corsivo",
+            "label": "Riga in corsivo",
+            "name": "corsivo",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "Prima dei nomi. I nomi si scrivono nella barra laterale (Dettagli evento).",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "Il matrimonio di",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_blocco_hero_immagine",
+            "label": "Foto",
+            "name": "immagine",
+            "aria-label": "",
+            "type": "image",
+            "instructions": "Facoltativa: se vuota si usa l'immagine in evidenza dell'evento.",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "return_format": "id",
+            "preview_size": "medium",
+            "library": "all",
+            "min_width": 0,
+            "min_height": 0,
+            "min_size": 0,
+            "max_width": 0,
+            "max_height": 0,
+            "max_size": 0,
+            "mime_types": "",
+            "uploader": "",
+            "acfe_thumbnail": 0,
+            "upload_folder": ""
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "block",
+                "operator": "==",
+                "value": "dlc\/hero"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "",
+    "show_in_rest": 0,
+    "display_title": "",
+    "allow_ai_access": false,
+    "ai_description": "",
+    "acfe_autosync": [
+        "json"
+    ],
+    "modified": 1792561726
+}

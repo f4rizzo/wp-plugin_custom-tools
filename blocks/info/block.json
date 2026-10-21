@@ -1,0 +1,31 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "dlc/info",
+    "title": "Informazioni",
+    "description": "Griglia di informazioni: Venue, Luogo, Catering e voci libere (etichetta + valore).",
+    "category": "dlc",
+    "icon": "list-view",
+    "keywords": [
+        "info",
+        "venue",
+        "luogo",
+        "catering",
+        "fornitori"
+    ],
+    "textdomain": "custom-tools",
+    "supports": {
+        "html": false,
+        "align": false,
+        "anchor": false,
+        "customClassName": false,
+        "className": false,
+        "reusable": false
+    },
+    "acf": {
+        "renderTemplate": "render.php",
+        "postTypes": [
+            "evento"
+        ]
+    }
+}

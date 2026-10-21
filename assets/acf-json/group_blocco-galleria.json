@@ -1,0 +1,155 @@
+{
+    "key": "group_blocco-galleria",
+    "title": "Blocco: Galleria",
+    "fields": [
+        {
+            "key": "field_blocco_galleria_galleria",
+            "label": "Foto",
+            "name": "galleria",
+            "aria-label": "",
+            "type": "gallery",
+            "instructions": "Trascina le foto per ordinarle. L'ingombro (wide\/tall) si sceglie sulla singola foto nella Libreria media.",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "return_format": "id",
+            "preview_size": "medium",
+            "insert": "append",
+            "library": "all",
+            "min": 0,
+            "max": 0,
+            "min_width": 0,
+            "min_height": 0,
+            "min_size": 0,
+            "max_width": 0,
+            "max_height": 0,
+            "max_size": 0,
+            "mime_types": ""
+        },
+        {
+            "key": "field_blocco_galleria_layout",
+            "label": "Layout",
+            "name": "layout",
+            "aria-label": "",
+            "type": "select",
+            "instructions": "",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "modulare",
+            "return_format": "value",
+            "ui": 0,
+            "choices": {
+                "modulare": "Modulare (wide\/tall foto per foto, come i matrimoni)",
+                "colonna": "Colonna (una foto per riga)",
+                "coppia": "Coppia (due foto affiancate, stessa altezza)",
+                "trio": "Trio (una grande e due impilate)",
+                "griglia": "Griglia (celle tutte uguali)",
+                "masonry": "Masonry (proporzioni naturali)"
+            },
+            "multiple": 0,
+            "allow_null": 0,
+            "ajax": 0,
+            "placeholder": "",
+            "create_options": 0,
+            "save_options": 0,
+            "allow_custom": 0,
+            "search_placeholder": "",
+            "prepend": "",
+            "append": "",
+            "min": "",
+            "max": ""
+        },
+        {
+            "key": "field_blocco_galleria_colonne",
+            "label": "Colonne su desktop",
+            "name": "colonne",
+            "aria-label": "",
+            "type": "number",
+            "instructions": "",
+            "required": false,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_blocco_galleria_layout",
+                        "operator": "==",
+                        "value": "griglia"
+                    }
+                ],
+                [
+                    {
+                        "field": "field_blocco_galleria_layout",
+                        "operator": "==",
+                        "value": "masonry"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "min": 2,
+            "max": 6,
+            "step": 1,
+            "placeholder": 2,
+            "default_value": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_blocco_galleria_didascalie",
+            "label": "Didascalie",
+            "name": "didascalie",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "ui": 1,
+            "message": "Mostra la didascalia sotto ogni foto",
+            "default_value": 0,
+            "ui_on_text": "",
+            "ui_off_text": "",
+            "style": ""
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "block",
+                "operator": "==",
+                "value": "dlc\/galleria"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "",
+    "show_in_rest": 0,
+    "display_title": "",
+    "allow_ai_access": false,
+    "ai_description": "",
+    "acfe_autosync": [
+        "json"
+    ],
+    "modified": 1792561726
+}

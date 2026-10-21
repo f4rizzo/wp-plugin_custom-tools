@@ -138,7 +138,17 @@ add_action('wp_enqueue_scripts', function () {
     );
 }, 15);
 
-add_shortcode('modular_gallery', function ($atts) {
+add_shortcode('modular_gallery', 'custom_tools_modular_gallery_shortcode');
+
+/**
+ * Callback dello shortcode, richiamabile anche da PHP
+ * (es. dlc_sezione_galleria_html() per i blocchi e il template nativo).
+ *
+ * @param array|string $atts Attributi dello shortcode
+ * @return string
+ */
+function custom_tools_modular_gallery_shortcode($atts)
+{
     $atts = shortcode_atts([
         'field'          => '',        // es. 'galleria_matrimonio_parte_1'
         'ids'            => '',        // es. '12,15,18' (alternativa a field)
@@ -200,7 +210,7 @@ add_shortcode('modular_gallery', function ($atts) {
     }
 
     return sprintf('<div class="%s"%s>%s</div>', esc_attr($cfg['class']), $cfg['style'], $html);
-});
+}
 
 
 /**

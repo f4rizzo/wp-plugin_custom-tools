@@ -1,0 +1,71 @@
+{
+    "key": "group_evento-dettagli",
+    "title": "Dettagli evento",
+    "fields": [
+        {
+            "key": "field_evento_nome_1",
+            "label": "Nome 1",
+            "name": "nome_coniuge_1",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "Con il Nome 2 forma il titolo dell'hero (\"Nome 1 e Nome 2\") e il nome nelle card. Se uno dei due manca, l'hero mostra il titolo.",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_evento_nome_2",
+            "label": "Nome 2",
+            "name": "nome_coniuge_2",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "post_type",
+                "operator": "==",
+                "value": "evento"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "side",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "Barra laterale degli eventi: dati usati anche fuori dalla pagina (card, elenchi).",
+    "show_in_rest": 0,
+    "display_title": "",
+    "allow_ai_access": false,
+    "ai_description": "",
+    "acfe_autosync": [
+        "json"
+    ],
+    "modified": 1792561726
+}

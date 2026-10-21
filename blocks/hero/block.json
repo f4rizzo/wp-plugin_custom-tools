@@ -1,0 +1,31 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "dlc/hero",
+    "title": "Hero con i nomi",
+    "description": "Foto a tutta larghezza con il titolo: riga in corsivo e i nomi della barra laterale (Dettagli evento). Senza nomi mostra il titolo.",
+    "category": "dlc",
+    "icon": "cover-image",
+    "keywords": [
+        "hero",
+        "titolo",
+        "nomi",
+        "copertina"
+    ],
+    "textdomain": "custom-tools",
+    "supports": {
+        "html": false,
+        "align": false,
+        "anchor": false,
+        "customClassName": false,
+        "className": false,
+        "reusable": false,
+        "multiple": false
+    },
+    "acf": {
+        "renderTemplate": "render.php",
+        "postTypes": [
+            "evento"
+        ]
+    }
+}
