@@ -56,6 +56,11 @@
         object-fit: cover;
         height: 100%;
       }
+      // Ultima tall spostata a destra: la riga la calcola lo shortcode (--mg-riga)
+      &.modular-gallery__item--destra {
+        grid-column: -2 / -1;
+        grid-row: var(--mg-riga, auto) / span 2;
+      }
     }
     &__item.wide {
       grid-column: 1 / -1;
@@ -97,6 +102,10 @@ $gap: mg(gap, s.$mg-gap);
     img {
       height: 100%;
       object-fit: cover;
+    }
+    &.modular-gallery__item--destra {
+      grid-column: -2 / -1;
+      grid-row: var(--mg-riga, auto) / span 2;
     }
   }
 }

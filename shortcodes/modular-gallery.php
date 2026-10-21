@@ -13,15 +13,19 @@
  * - post: ID del post da cui leggere "field" (opzionale, default: post corrente)
  * - slideshow: nome del gruppo lightbox (opzionale, default: "gallery")
  *
- * Layout (tutti facoltativi; senza, la galleria è identica a prima):
+ * Layout (tutti facoltativi):
  * - layout:     modulare (default) | colonna | coppia | trio | griglia | masonry
- *     modulare  ingombro scelto foto per foto (wide/tall, campo ACF dell'immagine);
- *               una 'tall' che resterebbe senza foto accanto (in fondo alla
- *               galleria o prima di una 'wide') viene mostrata come standard,
- *               così non restano buchi e l'ordine non cambia
+ *     modulare  ingombro scelto foto per foto (wide/tall, campo ACF dell'immagine),
+ *               corretto perché non restino buchi (l'ordine non cambia):
+ *               - una 'tall' senza foto accanto (prima di una 'wide', o in fondo)
+ *                 è mostrata come standard
+ *               - l'ultima 'tall' dopo due standard affiancate va a destra, con le
+ *                 due standard impilate a sinistra
+ *               - l'ultima foto, se resta da sola nella riga, diventa 'wide'
  *     colonna   una foto per riga, sempre
  *     coppia    due foto affiancate per riga, stessa altezza
- *     trio      una grande a sinistra (due righe) + due impilate a destra, a ripetere
+ *     trio      una grande a sinistra (due righe) + due impilate a destra, a ripetere;
+ *               in fondo due foto si affiancano, una sola va a tutta larghezza
  *     griglia   celle tutte uguali (vedi "proporzione")
  *     masonry   colonne con le foto nelle proporzioni naturali (ordine per colonna)
  * - colonne:        colonne su desktop (default 2; 1 per "colonna")
@@ -176,9 +180,14 @@ add_shortcode('modular_gallery', function ($atts) {
 
     $cfg = custom_tools_gallery_config($atts);
 
-    // Layout modulare: ingombri scelti dalla cliente, senza 'tall' orfane
+    // Ingombri: modulare = scelti dalla cliente, corretti perché non restino
+    // buchi; trio = schema fisso. Nessun buco nemmeno in fondo alla galleria.
     if ($cfg['layout'] === 'modulare') {
-        $cfg['ingombri'] = custom_tools_gallery_resolve_orphans(array_map('custom_tools_gallery_layout', $ids), $cfg['cols']);
+        $resolved        = custom_tools_gallery_resolve_orphans(array_map('custom_tools_gallery_layout', $ids), $cfg['cols']);
+        $cfg['ingombri'] = $resolved['ingombri'];
+        $cfg['righe']    = $resolved['righe'];
+    } elseif ($cfg['layout'] === 'trio') {
+        $cfg['ingombri'] = custom_tools_gallery_trio(count($ids));
     }
 
     $html = '';
@@ -295,68 +304,94 @@ function custom_tools_gallery_config($atts)
 
 /**
  * =======================================================
- * Funzione Helper: custom_tools_gallery_resolve_orphans
+ * Funzione Helper: custom_tools_gallery_place
  * =======================================================
- * Simula il posizionamento della griglia su desktop (come fa il browser
- * con grid-auto-flow: row) e trasforma in standard le 'tall' che
- * lascerebbero celle vuote accanto a sé: in fondo alla galleria, prima
- * di una 'wide', o con una sola foto accanto. L'ordine non cambia.
+ * Simula il posizionamento della griglia su desktop, come fa il browser
+ * con grid-auto-flow: row (il cursore va solo avanti, senza tornare a
+ * riempire i buchi).
  *
  * @param string[] $layouts Ingombri nell'ordine della galleria ('', 'wide', 'tall')
  * @param int      $cols    Colonne su desktop
- * @return string[] Ingombri corretti
+ * @return array [griglia [riga][colonna] => indice, posizioni indice => [riga, colonna]]
+ */
+function custom_tools_gallery_place($layouts, $cols)
+{
+    $grid   = [];
+    $placed = [];
+    $row    = 0;
+    $col    = 0;
+
+    foreach ($layouts as $i => $layout) {
+        $w = $layout === 'wide' ? $cols : 1;
+        $h = $layout === 'tall' ? 2 : 1;
+
+        // Primo posto libero dal cursore in avanti
+        while (true) {
+            if ($col + $w > $cols) {
+                $row++;
+                $col = 0;
+                continue;
+            }
+            $free = true;
+            for ($r = $row; $r < $row + $h && $free; $r++) {
+                for ($c = $col; $c < $col + $w; $c++) {
+                    if (isset($grid[$r][$c])) {
+                        $free = false;
+                        break;
+                    }
+                }
+            }
+            if ($free) {
+                break;
+            }
+            $col++;
+        }
+
+        for ($r = $row; $r < $row + $h; $r++) {
+            for ($c = $col; $c < $col + $w; $c++) {
+                $grid[$r][$c] = $i;
+            }
+        }
+        $placed[$i] = [$row, $col];
+        $col += $w;
+    }
+
+    return [$grid, $placed];
+}
+
+
+/**
+ * =======================================================
+ * Funzione Helper: custom_tools_gallery_resolve_orphans
+ * =======================================================
+ * Corregge gli ingombri del layout modulare perché su desktop non
+ * restino buchi. L'ordine delle foto non cambia.
+ *
+ * 1. Una 'tall' che lascerebbe celle vuote accanto a sé (prima di una
+ *    'wide', con una sola foto accanto, in fondo alla galleria) diventa
+ *    standard. Eccezione, solo con 2 colonne: se è l'ultima foto e le due
+ *    prima sono standard affiancate, la 'tall' va a destra e le due
+ *    standard si impilano a sinistra (riga in "righe").
+ * 2. L'ultima foto, se resta da sola nella sua riga, diventa 'wide'.
+ *
+ * @param string[] $layouts Ingombri nell'ordine della galleria ('', 'wide', 'tall')
+ * @param int      $cols    Colonne su desktop
+ * @return array ['ingombri' => string[], 'righe' => [indice => riga (da 0)]]
  */
 function custom_tools_gallery_resolve_orphans($layouts, $cols)
 {
     $layouts = array_values($layouts);
+    $rows    = [];
+    $last    = count($layouts) - 1;
 
-    if ($cols < 2 || !in_array('tall', $layouts, true)) {
-        return $layouts;
+    if ($cols < 2 || $last < 0) {
+        return ['ingombri' => $layouts, 'righe' => $rows];
     }
 
-    // Ogni giro toglie la prima 'tall' orfana e rifà la simulazione
-    for ($guard = 0; $guard < count($layouts); $guard++) {
-        $grid   = [];            // [riga][colonna] => indice della foto
-        $placed = [];            // indice => [riga, colonna]
-        $row = 0;
-        $col = 0;
+    // 1. 'tall' orfane: ogni giro corregge la prima e rifà la simulazione
+    for ($guard = 0; $guard <= $last; $guard++) {
+        [$grid, $placed] = custom_tools_gallery_place($layouts, $cols);
 
-        foreach ($layouts as $i => $layout) {
-            $w = $layout === 'wide' ? $cols : 1;
-            $h = $layout === 'tall' ? 2 : 1;
-
-            // Primo posto libero dal cursore in avanti (come il browser, senza tornare indietro)
-            while (true) {
-                if ($col + $w > $cols) {
-                    $row++;
-                    $col = 0;
-                    continue;
-                }
-                $free = true;
-                for ($r = $row; $r < $row + $h && $free; $r++) {
-                    for ($c = $col; $c < $col + $w; $c++) {
-                        if (isset($grid[$r][$c])) {
-                            $free = false;
-                            break;
-                        }
-                    }
-                }
-                if ($free) {
-                    break;
-                }
-                $col++;
-            }
-
-            for ($r = $row; $r < $row + $h; $r++) {
-                for ($c = $col; $c < $col + $w; $c++) {
-                    $grid[$r][$c] = $i;
-                }
-            }
-            $placed[$i] = [$row, $col];
-            $col += $w;
-        }
-
-        // Prima 'tall' con una cella vuota nelle sue due righe
         $orphan = null;
         foreach ($layouts as $i => $layout) {
             if ($layout !== 'tall') {
@@ -377,10 +412,57 @@ function custom_tools_gallery_resolve_orphans($layouts, $cols)
         }
 
         if ($orphan === null) {
-            return $layouts;
+            break;
+        }
+
+        // Ultima 'tall' finita a sinistra sotto due standard affiancate:
+        // va a destra, accanto alle due standard impilate
+        $row = $placed[$orphan][0] - 1;
+        if ($orphan === $last && $cols === 2 && $last >= 2
+            && $layouts[$last - 1] === '' && $layouts[$last - 2] === ''
+            && $placed[$last] === [$row + 1, 0]
+            && $placed[$last - 2] === [$row, 0] && $placed[$last - 1] === [$row, 1]) {
+            $rows[$last] = $row;
+            break;
         }
 
         $layouts[$orphan] = '';
+    }
+
+    // 2. Ultima foto da sola nella sua riga: a tutta larghezza
+    if (!isset($rows[$last]) && $layouts[$last] === '') {
+        [$grid, $placed] = custom_tools_gallery_place($layouts, $cols);
+        if (count($grid[$placed[$last][0]]) === 1) {
+            $layouts[$last] = 'wide';
+        }
+    }
+
+    return ['ingombri' => $layouts, 'righe' => $rows];
+}
+
+
+/**
+ * =======================================================
+ * Funzione Helper: custom_tools_gallery_trio
+ * =======================================================
+ * Ingombri del layout "trio": la prima di ogni tre foto è la grande
+ * ('tall'). In fondo: se restano due foto si affiancano, se ne resta
+ * una sola va a tutta larghezza ('wide').
+ *
+ * @param int $count Numero di foto
+ * @return string[]
+ */
+function custom_tools_gallery_trio($count)
+{
+    $layouts = [];
+    for ($i = 0; $i < $count; $i++) {
+        $layouts[] = $i % 3 === 0 ? 'tall' : '';
+    }
+
+    if ($count % 3 === 2) {
+        $layouts[$count - 2] = '';
+    } elseif ($count % 3 === 1) {
+        $layouts[$count - 1] = 'wide';
     }
 
     return $layouts;
@@ -393,48 +475,76 @@ function custom_tools_gallery_resolve_orphans($layouts, $cols)
  * =======================================================
  * Attributo "sizes" per una cella che occupa $span colonne, calcolato
  * dai parametri: è ciò che decide quale file scarica il browser, quindi
- * la nitidezza. Larghezza utile: 1138px (contenuto) o 100vw (piena),
- * meno il padding; per ogni dispositivo (colonne - span) gap.
+ * la nitidezza e il peso. Larghezza utile: 1138px (contenuto) o 100vw
+ * (piena), meno il padding e i gap tra le colonne.
  *
- * @param array $cfg  Configurazione (custom_tools_gallery_config)
- * @param int   $span Colonne occupate su desktop (1 o tutte)
+ * Nel layout "contenuto" la galleria smette di crescere a 1158px di
+ * schermo: da lì in su la larghezza è un valore fisso, anche quando il
+ * breakpoint desktop è più basso (1024, 1280) o più alto (1440, per le
+ * colonne tablet).
+ *
+ * @param array $cfg          Configurazione (custom_tools_gallery_config)
+ * @param int   $span         Colonne occupate su desktop (1 o tutte)
+ * @param bool  $desktop_only Solo la parte dal breakpoint in su (per <source>)
  * @return string
  */
-function custom_tools_gallery_sizes($cfg, $span = 1)
+function custom_tools_gallery_sizes($cfg, $span = 1, $desktop_only = false)
 {
-    $pad = CUSTOM_TOOLS_GALLERY_PADDING;
-    $max = CUSTOM_TOOLS_GALLERY_WIDTH;
+    $pad    = CUSTOM_TOOLS_GALLERY_PADDING;
+    $max    = CUSTOM_TOOLS_GALLERY_WIDTH;
+    $capped = $max + $pad; // schermo da cui la galleria "contenuto" è ferma a $max
+    $bp     = $cfg['breakpoint'];
+    $full   = $cfg['full'];
 
-    $width = function ($cols, $span, $viewport_min) use ($cfg, $pad, $max) {
-        $span  = min($span, $cols);
-        $gaps  = ($cols - 1) * $cfg['gap'];
-        // Contenuto: oltre 1158px la galleria è ferma a 1138px → valore fisso
-        if (!$cfg['full'] && $viewport_min >= $max + $pad) {
-            return (int) round((($max - $gaps) / $cols) * $span + ($span - 1) * $cfg['gap']) . 'px';
-        }
-        if ($cols === 1) {
+    // Larghezza fissa (galleria al massimo) e fluida (in proporzione allo schermo)
+    $fixed = function ($cols, $span) use ($cfg, $max) {
+        $gaps = ($cols - 1) * $cfg['gap'];
+        return (int) round((($max - $gaps) / $cols) * $span + ($span - 1) * $cfg['gap']) . 'px';
+    };
+    $fluid = function ($cols, $span) use ($cfg, $pad) {
+        if ($span >= $cols) {
             return 'calc(100vw - ' . $pad . 'px)';
         }
+        $gaps = ($cols - 1) * $cfg['gap'];
         return sprintf('calc((100vw - %dpx) * %s)', $pad + $gaps, rtrim(rtrim(number_format($span / $cols, 4, '.', ''), '0'), '.'));
     };
 
-    $desktop = $width($cfg['cols'], $span, $cfg['breakpoint']);
-    $tablet  = $width($cfg['cols_tablet'], 1, CUSTOM_TOOLS_GALLERY_TABLET);
-    $mobile  = $width($cfg['cols_mobile'], 1, 0);
+    $cols = $cfg['cols'];
+    $span = min($span, $cols);
+    $list = []; // [larghezza minima dello schermo, larghezza della foto], dalla più grande
 
-    // Tablet a una colonna nel layout "contenuto": il massimo è 1138px
-    if (!$cfg['full'] && $cfg['cols_tablet'] === 1) {
-        return sprintf(
-            '(min-width: %dpx) %s, (min-width: %dpx) %dpx, %s',
-            $cfg['breakpoint'],
-            $desktop,
-            $max + $pad,
-            $max,
-            $cfg['cols_mobile'] === 1 ? 'calc(100vw - ' . $pad . 'px)' : $mobile
-        );
+    // Desktop: dal breakpoint in su
+    if (!$full && $bp < $capped) {
+        $list[] = [$capped, $fixed($cols, $span)];
+        $list[] = [$bp, $fluid($cols, $span)];
+    } else {
+        $list[] = [$bp, $full ? $fluid($cols, $span) : $fixed($cols, $span)];
     }
 
-    return sprintf('(min-width: %dpx) %s, (min-width: %dpx) %s, %s', $cfg['breakpoint'], $desktop, CUSTOM_TOOLS_GALLERY_TABLET, $tablet, $mobile);
+    if ($desktop_only) {
+        $default = array_pop($list)[1];
+    } else {
+        // Tablet: dai 768px al breakpoint; mobile: sotto
+        $tablet = $cfg['cols_tablet'];
+        if (!$full && $bp > $capped) {
+            $list[] = [$capped, $fixed($tablet, 1)];
+        }
+        $list[] = [CUSTOM_TOOLS_GALLERY_TABLET, $fluid($tablet, 1)];
+        $default = $fluid($cfg['cols_mobile'], 1);
+    }
+
+    // Via le condizioni inutili: stessa larghezza della fascia sotto
+    $parts = [];
+    $next  = $default;
+    foreach (array_reverse($list) as [$min, $value]) {
+        if ($value !== $next) {
+            array_unshift($parts, sprintf('(min-width: %dpx) %s', $min, $value));
+        }
+        $next = $value;
+    }
+    $parts[] = $default;
+
+    return implode(', ', $parts);
 }
 
 
@@ -465,11 +575,12 @@ function custom_tools_gallery_item($id, $slideshow, $cfg = null, $index = 0)
     ]);
 
     // Ingombro: nel layout modulare lo sceglie la cliente (campo ACF);
-    // nel "trio" la prima di ogni tre foto è la grande (come 'tall')
+    // nel "trio" la prima di ogni tre foto è la grande (come 'tall').
+    // Di solito arriva già corretto dallo shortcode ($cfg['ingombri']).
     if ($cfg['layout'] === 'modulare') {
         $layout = $cfg['ingombri'][$index] ?? custom_tools_gallery_layout($id);
     } elseif ($cfg['layout'] === 'trio') {
-        $layout = $index % 3 === 0 ? 'tall' : '';
+        $layout = $cfg['ingombri'][$index] ?? ($index % 3 === 0 ? 'tall' : '');
     } else {
         $layout = '';
     }
@@ -530,11 +641,19 @@ function custom_tools_gallery_item($id, $slideshow, $cfg = null, $index = 0)
     }
 
     $class = 'modular-gallery__item' . ($layout ? ' ' . $layout : '');
+    $style = '';
+
+    // Ultima 'tall' spostata a destra: riga calcolata dallo shortcode (grid-row parte da 1)
+    if (isset($cfg['righe'][$index])) {
+        $class .= ' modular-gallery__item--destra';
+        $style  = sprintf(' style="--mg-riga: %d"', (int) $cfg['righe'][$index] + 1);
+    }
 
     return sprintf(
-        '<a href="%s" class="%s" data-elementor-open-lightbox="yes" data-elementor-lightbox-slideshow="%s" rel="lightbox">%s</a>',
+        '<a href="%s" class="%s"%s data-elementor-open-lightbox="yes" data-elementor-lightbox-slideshow="%s" rel="lightbox">%s</a>',
         esc_url(custom_tools_large_image_url($id)),
         esc_attr($class),
+        $style,
         esc_attr($slideshow),
         $media
     );
@@ -584,9 +703,8 @@ function custom_tools_gallery_crop_source($id, $metadata, $layout, $cfg = null)
         $desktop    = ($layout === 'tall' ? CUSTOM_TOOLS_GALLERY_COLUMN : CUSTOM_TOOLS_GALLERY_WIDTH) . 'px';
     } else {
         $breakpoint = $cfg['breakpoint'];
-        $desktop    = custom_tools_gallery_sizes(['cols_tablet' => $cfg['cols'], 'cols_mobile' => $cfg['cols'], 'breakpoint' => $breakpoint] + $cfg, $layout === 'wide' ? $cfg['cols'] : 1);
         // Basta la parte desktop: <source> vale solo dal breakpoint
-        $desktop = preg_replace('/^\(min-width: \d+px\) ([^,]+),.*$/', '$1', $desktop);
+        $desktop    = custom_tools_gallery_sizes($cfg, $layout === 'wide' ? $cfg['cols'] : 1, true);
     }
 
     return sprintf(

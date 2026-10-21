@@ -226,11 +226,11 @@ Attributi (serve `field` oppure `ids`):
 [modular_gallery field="galleria_matrimonio_parte_2" post="733"]
 ```
 
-Layout (tutti facoltativi; **senza, l'output è identico byte per byte a prima**):
+Layout (tutti facoltativi; senza parametri la galleria è quella storica, modulare a due colonne da 1440px):
 
 | Parametro | Valori | Default |
 |---|---|---|
-| `layout` | `modulare` (ingombro wide/tall foto per foto; una `tall` che resterebbe senza foto accanto, in fondo o prima di una `wide`, è mostrata come standard) · `colonna` · `coppia` · `trio` (una grande + due impilate) · `griglia` (celle uguali) · `masonry` (proporzioni naturali, ordine per colonna) | `modulare` |
+| `layout` | `modulare` (ingombro wide/tall foto per foto, corretto perché non restino buchi: vedi sotto) · `colonna` · `coppia` · `trio` (una grande + due impilate; in fondo due foto si affiancano, una sola va a tutta larghezza) · `griglia` (celle uguali) · `masonry` (proporzioni naturali, ordine per colonna) | `modulare` |
 | `colonne` / `colonne_tablet` / `colonne_mobile` | 1–6 / 1–6 / 1–4 | 2 / 1 / 1 |
 | `breakpoint` | da dove valgono le colonne desktop: `1024` · `1280` · `1440` | `1440` |
 | `proporzione` | celle di `griglia`/`coppia`: `3:2` · `4:3` · `1:1` · `4:5` · `2:3` · `auto` | griglia 3:2, coppia 4:5 |
@@ -238,6 +238,16 @@ Layout (tutti facoltativi; **senza, l'output è identico byte per byte a prima**
 | `larghezza` | `contenuto` (max 1138px) · `piena` | `contenuto` |
 | `didascalie` | `si` = didascalia sotto la foto | — |
 | `nitide` | `si` = mai più larga della risoluzione del file | — |
+
+Correzioni del layout `modulare` su desktop (`custom_tools_gallery_resolve_orphans()`,
+che simula la griglia come il browser; l'ordine delle foto non cambia):
+
+- una `tall` senza foto accanto (prima di una `wide`, con una sola foto vicina,
+  in fondo) è mostrata come standard;
+- l'**ultima** foto non è mai `tall`: se le due prima sono standard affiancate,
+  la `tall` va a destra (classe `modular-gallery__item--destra`, riga in
+  `--mg-riga`) e le due standard si impilano a sinistra; altrimenti diventa standard;
+- l'**ultima** foto, se resta da sola nella sua riga, diventa `wide`.
 
 ```text
 [modular_gallery ids="…" layout="trio" breakpoint="1024"]
@@ -247,6 +257,8 @@ Layout (tutti facoltativi; **senza, l'output è identico byte per byte a prima**
 
 L'attributo `sizes` di ogni foto è calcolato dai parametri (colonne, gap, larghezza,
 breakpoint): è ciò che fa scaricare al browser il file della misura giusta.
+Nel layout `contenuto`, da 1158px di schermo in su (galleria ferma a 1138px) la
+larghezza è un valore fisso, qualunque sia il breakpoint.
 Colonne, gap e proporzione arrivano al CSS come variabili `--mg-*`; il breakpoint
 come classe `modular-gallery--bp-*`. Pagina di prova privata: `/test-gallerie/`.
 
