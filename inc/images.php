@@ -505,9 +505,9 @@ add_action('wp_head', function () {
  * =======================================================
  * 6. Avviso per le foto a bassa risoluzione
  * =======================================================
- * Nella Libreria media (dettagli dell'immagine) indica se la foto è
- * troppo piccola per essere mostrata nitida a tutta larghezza della
- * galleria (1138px, il doppio sugli schermi retina). Le foto importate
+ * Nella Libreria media (dettagli dell'immagine) indica l'orientamento
+ * della foto e se è troppo piccola per essere mostrata nitida a tutta
+ * larghezza della galleria (1138px, il doppio sugli schermi retina). Le foto importate
  * dal vecchio sito sono spesso a 1024px.
  */
 add_filter('attachment_fields_to_edit', function ($fields, $post) {
@@ -522,18 +522,21 @@ add_filter('attachment_fields_to_edit', function ($fields, $post) {
         return $fields;
     }
 
-    $width = (int) $size[0];
+    $width       = (int) $size[0];
+    $orientation = $size[0] > $size[1] ? 'Orizzontale' : ($size[0] < $size[1] ? 'Verticale' : 'Quadrata');
 
     if ($width >= 2048) {
-        $note = sprintf('%d px — ok per tutti gli schermi.', $width);
+        $note = sprintf('%d px · ok', $width);
     } elseif ($width >= 1200) {
-        $note = sprintf('%d px — nitida su schermi normali, un po\' morbida a tutta larghezza su retina.', $width);
+        $note = sprintf('%d px · un po\' morbida su retina', $width);
     } else {
-        $note = sprintf('%d px — bassa: a tutta larghezza risulta sgranata. Meglio ricaricare l\'originale (almeno 2048 px).', $width);
+        $note = sprintf('%d px · bassa: ricarica l\'originale (2048 px)', $width);
     }
 
+    $note = $orientation . ' · ' . $note;
+
     $fields['custom_tools_risoluzione'] = [
-        'label' => 'Risoluzione originale',
+        'label' => 'Foto',
         'input' => 'html',
         'html'  => '<span' . ($width < 1200 ? ' style="color:#b32d2e;font-weight:600"' : '') . '>' . esc_html($note) . '</span>',
     ];

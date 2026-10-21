@@ -46,8 +46,11 @@ add_action('plugins_loaded', function () {
     require_once $base . 'shortcodes/portfolio.php';
     require_once $base . 'shortcodes/modular-gallery.php';
 
-    // Eventi: post type a blocchi, blocchi ACF dlc/* (blocks/) e struttura iniziale
+    // Eventi: form ACF a tutta pagina con i capitoli (galleria + testo)
     require_once $base . 'inc/eventi.php';
+
+    // Opzioni delle foto nella Libreria media: pulsanti, anteprima del ritaglio
+    require_once $base . 'inc/foto-admin.php';
 
     // Correttivo temporaneo ACF 6.8 / ACFE 0.9.2.3 (checkbox), vedi file
     require_once $base . 'inc/compat-acfe.php';

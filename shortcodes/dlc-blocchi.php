@@ -7,7 +7,7 @@
  *
  * Funzioni PHP usate dai template nativi del tema (hello-theme-child:
  * header-dlc.php, single-post.php, single-matrimonio.php, home.php,
- * page-templates/dlc-*.php) e dai blocchi dlc/* degli eventi (blocks/).
+ * page-templates/dlc-*.php) e dalla pagina degli eventi (inc/eventi.php).
  *
  * Riusano gli elementi già esistenti, senza duplicarli:
  *  - titoli:     classi del tema .title-Literata-md / .title-Anton-lg e
@@ -244,7 +244,7 @@ function dlc_hero_html($image_id, $corsivo = '', $maiuscolo = '', $opts = [])
  * =======================================================
  * Un'unica fonte del markup, usata da:
  *  - il template nativo single-matrimonio.php (dati dai campi ACF del post)
- *  - i blocchi dlc/* della pagina a blocchi degli eventi (dati dai blocchi)
+ *  - il template single-evento.php (stessi campi, racconto a capitoli)
  * Così le due pagine escono identiche per costruzione.
  */
 

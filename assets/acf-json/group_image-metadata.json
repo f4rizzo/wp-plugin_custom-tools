@@ -1,14 +1,14 @@
 {
     "key": "group_image-metadata",
-    "title": "Image - Meta data",
+    "title": "Foto nella galleria",
     "fields": [
         {
             "key": "field_688794fa3b2bb",
-            "label": "Ingombro Gallery",
+            "label": "Ingombro",
             "name": "gallery_image_size",
             "aria-label": "",
-            "type": "select",
-            "instructions": "",
+            "type": "button_group",
+            "instructions": "Larga: 2 colonne. Alta: 2 righe.",
             "required": 0,
             "conditional_logic": 0,
             "wrapper": {
@@ -21,43 +21,40 @@
             "hide_instructions": "",
             "hide_required": "",
             "choices": {
-                "wide": "Wide: Immagine su due colonne",
-                "tall": "Long: Immagine su due righe"
+                "standard": "Standard",
+                "wide": "Larga",
+                "tall": "Alta"
             },
-            "default_value": false,
+            "default_value": "standard",
             "return_format": "value",
-            "multiple": 0,
             "max": "",
-            "placeholder": "Ingombro normale",
             "prepend": "",
             "append": "",
             "acfe_settings": "",
             "acfe_validate": "",
-            "allow_null": 1,
+            "allow_null": 0,
             "instruction_placement": "",
             "acfe_permissions": "",
             "allow_in_bindings": 0,
-            "ui": 0,
-            "ajax": 0,
-            "create_options": 0,
-            "save_options": 0,
             "allow_custom": 0,
             "search_placeholder": "",
-            "min": ""
+            "min": "",
+            "layout": "horizontal"
         },
         {
             "key": "field_bf54a05c6a726",
-            "label": "Allineamento ritaglio",
+            "label": "Inquadratura",
             "name": "gallery_crop_position",
             "aria-label": "",
-            "type": "select",
-            "instructions": "Quale parte della foto mostrare quando l'ingombro la ritaglia: Long su una foto orizzontale (sinistra \/ centro \/ destra), Wide su una foto verticale (alto \/ centro \/ basso). Il ritaglio si aggiorna al salvataggio.",
+            "type": "button_group",
+            "instructions": "",
             "required": 0,
             "conditional_logic": [
                 [
                     {
                         "field": "field_688794fa3b2bb",
-                        "operator": "!=empty"
+                        "operator": "!=",
+                        "value": "standard"
                     }
                 ]
             ],
@@ -67,27 +64,22 @@
                 "id": ""
             },
             "choices": {
+                "left": "Sinistra",
+                "top": "Alto",
                 "center": "Centro",
-                "left": "Sinistra (foto orizzontali)",
-                "right": "Destra (foto orizzontali)",
-                "top": "Alto (foto verticali)",
-                "bottom": "Basso (foto verticali)"
+                "bottom": "Basso",
+                "right": "Destra"
             },
             "default_value": "center",
             "return_format": "value",
             "allow_null": 0,
-            "multiple": 0,
-            "ui": 0,
-            "ajax": 0,
-            "placeholder": "",
-            "create_options": 0,
-            "save_options": 0,
             "allow_custom": 0,
             "search_placeholder": "",
             "prepend": "",
             "append": "",
             "min": "",
-            "max": ""
+            "max": "",
+            "layout": "horizontal"
         }
     ],
     "location": [
@@ -102,13 +94,15 @@
     "menu_order": 0,
     "position": "normal",
     "style": "default",
-    "label_placement": "left",
+    "label_placement": "top",
     "instruction_placement": "label",
     "hide_on_screen": "",
     "active": true,
     "description": "",
     "show_in_rest": 0,
     "display_title": "",
+    "allow_ai_access": false,
+    "ai_description": "",
     "acfe_autosync": [
         "json"
     ],
@@ -117,5 +111,6 @@
     "acfe_permissions": "",
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1792275735
+    "modified": 1792613369,
+    "local_file": "\/Users\/farizzo\/Project\/sites\/deborahlocastro\/app\/public\/wp-content\/plugins\/custom-tools\/assets\/acf-json\/group_image-metadata.json"
 }

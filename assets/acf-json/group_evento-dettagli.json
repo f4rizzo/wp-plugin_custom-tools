@@ -3,16 +3,34 @@
     "title": "Dettagli evento",
     "fields": [
         {
+            "key": "field_evento_sez_coppia",
+            "label": "Coppia",
+            "name": "",
+            "aria-label": "",
+            "type": "accordion",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "open": 1,
+            "multi_expand": 1,
+            "endpoint": 0
+        },
+        {
             "key": "field_evento_nome_1",
             "label": "Nome 1",
             "name": "nome_coniuge_1",
             "aria-label": "",
             "type": "text",
-            "instructions": "Con il Nome 2 forma il titolo dell'hero (\"Nome 1 e Nome 2\") e il nome nelle card. Se uno dei due manca, l'hero mostra il titolo.",
-            "required": false,
+            "instructions": "",
+            "required": 1,
             "conditional_logic": false,
             "wrapper": {
-                "width": "",
+                "width": "50",
                 "class": "",
                 "id": ""
             },
@@ -29,10 +47,10 @@
             "aria-label": "",
             "type": "text",
             "instructions": "",
-            "required": false,
+            "required": 1,
             "conditional_logic": false,
             "wrapper": {
-                "width": "",
+                "width": "50",
                 "class": "",
                 "id": ""
             },
@@ -41,6 +59,572 @@
             "placeholder": "",
             "prepend": "",
             "append": ""
+        },
+        {
+            "key": "field_evento_corsivo",
+            "label": "Riga sopra i nomi",
+            "name": "hero_corsivo",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "In copertina: \"Il matrimonio di\" + Nome 1 e Nome 2. Lascia vuoto per la frase standard.",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "placeholder": "Il matrimonio di",
+            "default_value": "",
+            "maxlength": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_evento_sez_foto",
+            "label": "Foto principali",
+            "name": "",
+            "aria-label": "",
+            "type": "accordion",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "open": 1,
+            "multi_expand": 1,
+            "endpoint": 0
+        },
+        {
+            "key": "field_evento_copertina",
+            "label": "Copertina",
+            "name": "img_header_matrimonio",
+            "aria-label": "",
+            "type": "image",
+            "instructions": "In cima alla pagina, sotto i nomi. Orizzontale.",
+            "required": 1,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "33",
+                "class": "",
+                "id": ""
+            },
+            "return_format": "id",
+            "library": "all",
+            "preview_size": "medium",
+            "mime_types": "jpg, jpeg, png, webp",
+            "min_width": 0,
+            "min_height": 0,
+            "min_size": 0,
+            "max_width": 0,
+            "max_height": 0,
+            "max_size": 0,
+            "uploader": "",
+            "acfe_thumbnail": 0,
+            "upload_folder": ""
+        },
+        {
+            "key": "field_evento_foto_larga",
+            "label": "Foto larga",
+            "name": "img_hero_matrimonio",
+            "aria-label": "",
+            "type": "image",
+            "instructions": "A tutta larghezza, dopo l'intro. Orizzontale.",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "33",
+                "class": "",
+                "id": ""
+            },
+            "return_format": "id",
+            "library": "all",
+            "preview_size": "medium",
+            "mime_types": "jpg, jpeg, png, webp",
+            "min_width": 0,
+            "min_height": 0,
+            "min_size": 0,
+            "max_width": 0,
+            "max_height": 0,
+            "max_size": 0,
+            "uploader": "",
+            "acfe_thumbnail": 0,
+            "upload_folder": ""
+        },
+        {
+            "key": "field_evento_card",
+            "label": "Foto della card",
+            "name": "_thumbnail_id",
+            "aria-label": "",
+            "type": "image",
+            "instructions": "Negli elenchi e nelle condivisioni. Verticale. Se vuota si usa la copertina.",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "34",
+                "class": "",
+                "id": ""
+            },
+            "return_format": "id",
+            "library": "all",
+            "preview_size": "medium",
+            "mime_types": "jpg, jpeg, png, webp",
+            "min_width": 0,
+            "min_height": 0,
+            "min_size": 0,
+            "max_width": 0,
+            "max_height": 0,
+            "max_size": 0,
+            "uploader": "",
+            "acfe_thumbnail": 0,
+            "upload_folder": ""
+        },
+        {
+            "key": "field_evento_sez_intro",
+            "label": "Intro",
+            "name": "",
+            "aria-label": "",
+            "type": "accordion",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "open": 1,
+            "multi_expand": 1,
+            "endpoint": 0
+        },
+        {
+            "key": "field_evento_intro",
+            "label": "Testo di intro",
+            "name": "intro_matrimonio",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "Le prime righe sotto la copertina.",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "tabs": "visual",
+            "toolbar": "basic",
+            "media_upload": 0,
+            "delay": 0,
+            "default_value": "",
+            "acfe_wysiwyg_auto_init": 0,
+            "acfe_wysiwyg_height": 300,
+            "acfe_wysiwyg_min_height": 300,
+            "acfe_wysiwyg_max_height": "",
+            "acfe_wysiwyg_valid_elements": "",
+            "acfe_wysiwyg_custom_style": "",
+            "acfe_wysiwyg_disable_wp_style": 0,
+            "acfe_wysiwyg_autoresize": 0,
+            "acfe_wysiwyg_disable_resize": 0,
+            "acfe_wysiwyg_remove_path": 0,
+            "acfe_wysiwyg_menubar": 0,
+            "acfe_wysiwyg_transparent": 0,
+            "acfe_wysiwyg_merge_toolbar": 0,
+            "acfe_wysiwyg_custom_toolbar": 0,
+            "acfe_wysiwyg_toolbar_buttons": []
+        },
+        {
+            "key": "field_evento_sez_info",
+            "label": "Informazioni",
+            "name": "",
+            "aria-label": "",
+            "type": "accordion",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "open": 1,
+            "multi_expand": 1,
+            "endpoint": 0
+        },
+        {
+            "key": "field_evento_location",
+            "label": "Venue",
+            "name": "matrimonio_location",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "33",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_evento_luogo",
+            "label": "Luogo",
+            "name": "matrimonio_luogo",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "33",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_evento_catering",
+            "label": "Catering",
+            "name": "matrimonio_catering",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "34",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_evento_info",
+            "label": "Altre voci",
+            "name": "info_matrimonio",
+            "aria-label": "",
+            "type": "repeater",
+            "instructions": "Band, vini, abito… Le voci senza etichetta o valore non compaiono.",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "layout": "table",
+            "button_label": "Aggiungi voce",
+            "min": 0,
+            "max": 0,
+            "pagination": 0,
+            "rows_per_page": 20,
+            "collapsed": "",
+            "acfe_repeater_stylised_button": 0,
+            "sub_fields": [
+                {
+                    "key": "field_evento_info_etichetta",
+                    "label": "Etichetta",
+                    "name": "etichetta_info_matrimonio",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": false,
+                    "conditional_logic": false,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "placeholder": "Band",
+                    "parent_repeater": "field_evento_info",
+                    "default_value": "",
+                    "maxlength": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_evento_info_valore",
+                    "label": "Valore",
+                    "name": "valore_info_matrimonio",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": false,
+                    "conditional_logic": false,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "placeholder": "Nome della band",
+                    "parent_repeater": "field_evento_info",
+                    "default_value": "",
+                    "maxlength": "",
+                    "prepend": "",
+                    "append": ""
+                }
+            ]
+        },
+        {
+            "key": "field_evento_sez_racconto",
+            "label": "Racconto",
+            "name": "",
+            "aria-label": "",
+            "type": "accordion",
+            "instructions": "Ogni capitolo è una galleria seguita da un testo. Si aggiungono con \"Aggiungi capitolo\", si riordinano trascinandoli e si chiudono con la freccia.",
+            "required": 0,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "open": 1,
+            "multi_expand": 1,
+            "endpoint": 0
+        },
+        {
+            "key": "field_evento_capitoli",
+            "label": "Capitoli",
+            "name": "capitoli",
+            "aria-label": "",
+            "type": "repeater",
+            "instructions": "",
+            "required": false,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "layout": "block",
+            "button_label": "Aggiungi capitolo",
+            "min": 0,
+            "max": 0,
+            "pagination": 0,
+            "collapsed": "field_evento_capitolo_nome",
+            "rows_per_page": 20,
+            "acfe_repeater_stylised_button": 0,
+            "sub_fields": [
+                {
+                    "key": "field_evento_capitolo_nome",
+                    "label": "Nome del capitolo",
+                    "name": "nome",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "Solo per orientarsi qui (es. Preparazione, Cerimonia, Festa): non compare nel sito.",
+                    "required": false,
+                    "conditional_logic": false,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "parent_repeater": "field_evento_capitoli",
+                    "default_value": "",
+                    "maxlength": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_evento_capitolo_galleria",
+                    "label": "Foto",
+                    "name": "galleria",
+                    "aria-label": "",
+                    "type": "gallery",
+                    "instructions": "Trascina per ordinarle. Ingombro (wide\/tall) e ritaglio si scelgono sulla singola foto.",
+                    "required": false,
+                    "conditional_logic": false,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "parent_repeater": "field_evento_capitoli",
+                    "return_format": "id",
+                    "library": "all",
+                    "preview_size": "thumbnail",
+                    "insert": "append",
+                    "mime_types": "jpg, jpeg, png, webp",
+                    "min": 0,
+                    "max": 0,
+                    "min_width": 0,
+                    "min_height": 0,
+                    "min_size": 0,
+                    "max_width": 0,
+                    "max_height": 0,
+                    "max_size": 0
+                },
+                {
+                    "key": "field_evento_capitolo_layout",
+                    "label": "Layout",
+                    "name": "layout",
+                    "aria-label": "",
+                    "type": "select",
+                    "instructions": "",
+                    "required": false,
+                    "conditional_logic": false,
+                    "wrapper": {
+                        "width": "40",
+                        "class": "",
+                        "id": ""
+                    },
+                    "parent_repeater": "field_evento_capitoli",
+                    "choices": {
+                        "modulare": "Modulare (come i matrimoni)",
+                        "colonna": "Colonna (una foto per riga)",
+                        "coppia": "Coppia (due affiancate)",
+                        "trio": "Trio (una grande e due impilate)",
+                        "griglia": "Griglia (celle uguali)",
+                        "masonry": "Masonry (proporzioni naturali)"
+                    },
+                    "default_value": "modulare",
+                    "return_format": "value",
+                    "ui": 0,
+                    "allow_null": 0,
+                    "multiple": 0,
+                    "ajax": 0,
+                    "placeholder": "",
+                    "create_options": 0,
+                    "save_options": 0,
+                    "allow_custom": 0,
+                    "search_placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "min": "",
+                    "max": ""
+                },
+                {
+                    "key": "field_evento_capitolo_colonne",
+                    "label": "Colonne",
+                    "name": "colonne",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "",
+                    "required": false,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_evento_capitolo_layout",
+                                "operator": "==",
+                                "value": "griglia"
+                            }
+                        ],
+                        [
+                            {
+                                "field": "field_evento_capitolo_layout",
+                                "operator": "==",
+                                "value": "masonry"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "30",
+                        "class": "",
+                        "id": ""
+                    },
+                    "parent_repeater": "field_evento_capitoli",
+                    "min": 2,
+                    "max": 6,
+                    "placeholder": 3,
+                    "default_value": "",
+                    "step": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_evento_capitolo_didascalie",
+                    "label": "Didascalie",
+                    "name": "didascalie",
+                    "aria-label": "",
+                    "type": "true_false",
+                    "instructions": "",
+                    "required": false,
+                    "conditional_logic": false,
+                    "wrapper": {
+                        "width": "30",
+                        "class": "",
+                        "id": ""
+                    },
+                    "parent_repeater": "field_evento_capitoli",
+                    "ui": 1,
+                    "default_value": 0,
+                    "message": "Sotto ogni foto",
+                    "ui_on_text": "",
+                    "ui_off_text": "",
+                    "style": ""
+                },
+                {
+                    "key": "field_evento_capitolo_testo",
+                    "label": "Testo dopo le foto",
+                    "name": "testo",
+                    "aria-label": "",
+                    "type": "wysiwyg",
+                    "instructions": "Facoltativo.",
+                    "required": false,
+                    "conditional_logic": false,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "parent_repeater": "field_evento_capitoli",
+                    "tabs": "visual",
+                    "toolbar": "basic",
+                    "media_upload": 0,
+                    "delay": 0,
+                    "default_value": "",
+                    "acfe_wysiwyg_auto_init": 0,
+                    "acfe_wysiwyg_height": 300,
+                    "acfe_wysiwyg_min_height": 300,
+                    "acfe_wysiwyg_max_height": "",
+                    "acfe_wysiwyg_valid_elements": "",
+                    "acfe_wysiwyg_custom_style": "",
+                    "acfe_wysiwyg_disable_wp_style": 0,
+                    "acfe_wysiwyg_autoresize": 0,
+                    "acfe_wysiwyg_disable_resize": 0,
+                    "acfe_wysiwyg_remove_path": 0,
+                    "acfe_wysiwyg_menubar": 0,
+                    "acfe_wysiwyg_transparent": 0,
+                    "acfe_wysiwyg_merge_toolbar": 0,
+                    "acfe_wysiwyg_custom_toolbar": 0,
+                    "acfe_wysiwyg_toolbar_buttons": []
+                }
+            ]
+        },
+        {
+            "key": "field_evento_sez_fine",
+            "label": "",
+            "name": "",
+            "aria-label": "",
+            "type": "accordion",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": false,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "endpoint": 1,
+            "open": 0,
+            "multi_expand": 0
         }
     ],
     "location": [
@@ -53,13 +637,27 @@
         ]
     ],
     "menu_order": 0,
-    "position": "side",
-    "style": "default",
+    "position": "acf_after_title",
+    "style": "seamless",
     "label_placement": "top",
     "instruction_placement": "label",
-    "hide_on_screen": "",
+    "hide_on_screen": [
+        "block_editor",
+        "the_content",
+        "excerpt",
+        "custom_fields",
+        "discussion",
+        "comments",
+        "author",
+        "format",
+        "page_attributes",
+        "featured_image",
+        "categories",
+        "tags",
+        "send-trackbacks"
+    ],
     "active": true,
-    "description": "Barra laterale degli eventi: dati usati anche fuori dalla pagina (card, elenchi).",
+    "description": "Pagina dell'evento: coppia, foto, intro, informazioni e capitoli (galleria + testo). Stessi nomi di campo dei matrimoni.",
     "show_in_rest": 0,
     "display_title": "",
     "allow_ai_access": false,
@@ -67,5 +665,5 @@
     "acfe_autosync": [
         "json"
     ],
-    "modified": 1792561726
+    "modified": 1792612518
 }

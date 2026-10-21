@@ -33,7 +33,8 @@ Il file `custom-tools.php` carica i moduli PHP:
 - `shortcodes/matrimonio.php`
 - `shortcodes/portfolio.php`
 - `shortcodes/modular-gallery.php`
-- `inc/eventi.php` (blocchi `dlc/*` e struttura degli eventi, vedi sezione 8)
+- `inc/eventi.php` (form a capitoli degli eventi, vedi sezione 8)
+- `inc/foto-admin.php` (opzioni delle foto nella Libreria media, vedi sezione 3)
 - `inc/compat-acfe.php` (temporaneo, vedi *Limiti attuali*)
 
 I moduli che usano `get_field()` vengono caricati su `plugins_loaded` solo se ACF
@@ -210,7 +211,7 @@ Output:
 
 - markup solo se ci sono item valorizzati.
 - il markup viene da `dlc_info_voci()` + `dlc_info_griglia_html()`
-  (`shortcodes/dlc-blocchi.php`), condivise con il blocco `dlc/info`.
+  (`shortcodes/dlc-blocchi.php`), condivise con la pagina degli eventi.
 
 #### `[modular_gallery field="..." slideshow="gallery"]`
 
@@ -332,9 +333,33 @@ verità, da spostare nel tema in un'ottimizzazione futura.
 
 #### Avviso risoluzione nella Libreria media
 
-Nei dettagli di ogni immagine compare "Risoluzione originale" con un giudizio:
-sotto i 1200px la foto risulta sgranata a tutta larghezza (succede con le foto
-importate dal vecchio sito, spesso a 1024px).
+Nei dettagli di ogni immagine la riga "Foto" riporta orientamento, larghezza
+dell'originale e un giudizio breve (es. "Orizzontale · 1920 px · un po' morbida
+su retina"): sotto i 1200px la foto risulta sgranata a tutta larghezza (succede
+con le foto importate dal vecchio sito, spesso a 1024px).
+
+#### Opzioni delle foto in admin (`inc/foto-admin.php`)
+
+Gruppo ACF "Foto nella galleria" (`group_image-metadata`), nei dettagli di ogni
+immagine e nel pannello che si apre cliccando una foto in una galleria ACF:
+
+- **Ingombro** (`gallery_image_size`): pulsanti *Standard · Larga · Alta*.
+  "Standard" esiste solo nel form (`acf/prepare_field`); nel database resta il
+  valore vuoto (`acf/update_value`), quindi `get_field()`, la galleria e i
+  ritagli non cambiano;
+- **Inquadratura** (`gallery_crop_position`): solo le scelte utili per
+  l'orientamento della foto (`acf/prepare_field`): *Sinistra · Centro · Destra*
+  per orizzontali e quadrate, visibile con *Alta*; *Alto · Centro · Basso* per
+  le verticali, visibile con *Larga* o *Alta*;
+- **anteprima dal vivo** sotto l'ingombro (`acf/render_field`): la foto nella
+  proporzione della cella (Alta 3:4, Larga 3:2) con l'inquadratura scelta; si
+  aggiorna cliccando i pulsanti (`assets/js/foto-admin.js`), prima di salvare;
+- nel pannello della galleria ACF i campi della foto salgono subito sotto la
+  miniatura, prima di titolo, didascalia e testo alternativo (CSS);
+- la descrizione, che il sito non usa, è nascosta; sotto testo alternativo e
+  didascalia una riga dice dove compaiono.
+
+Etichette e testi sono corti: il pannello della galleria è stretto.
 
 ### 7. Helper immagini per la galleria modulare
 
@@ -351,55 +376,44 @@ Mappatura campo ACF `gallery_image_size` -> formato:
 
 Fallback finale: URL dell'immagine piena.
 
-### 8. Eventi: pagina a blocchi (`inc/eventi.php`, `blocks/`)
+### 8. Eventi: pagina da form ACF (`inc/eventi.php`)
 
-Prova della pagina a blocchi da usare in futuro per i matrimoni. Un evento
-si compila nell'editor a blocchi; la resa è identica al template nativo
-dei matrimoni (`hello-theme-child/single-matrimonio.php`).
+Prova della nuova pagina dei matrimoni. Un evento si compila solo con il
+form ACF "Dettagli evento": a tutta pagina sotto il titolo, editor a blocchi
+nascosto (ACF Extended, `hide_on_screen`), sezioni a fisarmonica. La resa
+(`hello-theme-child/single-evento.php`) usa lo stesso markup del template
+nativo dei matrimoni (`single-matrimonio.php`).
 
-**Dati**
+I campi hanno gli stessi nomi dei matrimoni, così card (`dlc_matrimoni_html()`),
+`[nomi_coniugi]`, `[info_matrimonio]` e il loop Elementor li trovano:
 
-| Dove | Cosa |
-|---|---|
-| Barra laterale, gruppo "Dettagli evento" | `nome_coniuge_1`, `nome_coniuge_2`: stesse chiavi dei matrimoni, così card (`dlc_matrimoni_html()`), `[nomi_coniugi]` e il loop Elementor li trovano |
-| Immagine in evidenza | foto dell'hero (il blocco può sceglierne un'altra) |
-| Blocchi nella pagina | tutto il resto, nell'ordine scelto |
-
-**Blocchi** (uno per cartella in `blocks/`: `block.json` + `render.php`;
-campi nei gruppi ACF "Blocco: …" in `acf-json/`; categoria "Deborah Lo Castro";
-disponibili solo negli eventi):
-
-| Blocco | Campi | Resa |
+| Sezione | Campi | Resa |
 |---|---|---|
-| `dlc/hero` | `corsivo` (default "Il matrimonio di"), `immagine` (facoltativa) | `dlc_sezione_hero_html()`; uno solo per pagina, non eliminabile (contiene l'H1) |
-| `dlc/testo` | `testo` (WYSIWYG) | `dlc_sezione_testo_html()` |
-| `dlc/foto-larga` | `immagine` | `dlc_sezione_foto_larga_html()` |
-| `dlc/info` | `location`, `luogo`, `catering`, repeater `voci` (`etichetta`, `valore`) | `dlc_info_griglia_html()` in `.dlc-contenitore` |
-| `dlc/galleria` | `galleria` (foto ordinate), `layout`, `colonne` (griglia/masonry), `didascalie` | `dlc_sezione_galleria_html()` → `[modular_gallery ids="…"]`, lightbox `evento` |
+| Coppia | `nome_coniuge_1/2` (obbligatori), `hero_corsivo` (vuoto = "Il matrimonio di") | `dlc_sezione_hero_html()` |
+| Foto principali | `img_header_matrimonio` (copertina, obbligatoria), `img_hero_matrimonio` (foto larga), `_thumbnail_id` (foto della card = immagine in evidenza) | hero, `dlc_sezione_foto_larga_html()` |
+| Intro | `intro_matrimonio` | `dlc_sezione_testo_html()` |
+| Informazioni | `matrimonio_location`, `matrimonio_luogo`, `matrimonio_catering`, repeater `info_matrimonio` | `[info_matrimonio]` |
+| Racconto | repeater `capitoli`: `nome` (solo per l'admin, titolo del capitolo chiuso), `galleria`, `layout`, `colonne` (griglia/masonry), `didascalie`, `testo` | `dlc_evento_capitolo_html()` → `[modular_gallery ids="…"]` (lightbox `evento`) + testo |
 
-Un blocco vuoto non stampa nulla (l'hero mostra almeno il titolo).
-Nell'editor ogni blocco compilato mostra un riepilogo tecnico
-(`dlc_blocco_riepilogo()`: testo, numero di foto, miniature) invece della
-resa del sito, che lì non avrebbe lo stile della pagina.
-
-**Struttura di un evento nuovo** (`template` del post type, filtro
-`register_post_type_args`): hero, testo, foto larga, informazioni, galleria,
-testo, galleria, testo. Non è bloccata: i blocchi si spostano, aggiungono e
-tolgono. Cambiarla vale solo per gli eventi creati dopo.
+I capitoli sono quanti ne servono, riordinabili e richiudibili: sostituiscono
+le due parti fisse dei matrimoni (`galleria/storia_matrimonio_parte_1/2`).
+Senza foto della card, al salvataggio l'immagine in evidenza diventa la
+copertina (`acf/save_post`). Il riquadro dell'immagine in evidenza, il
+riassunto e i campi personalizzati sono nascosti: tutto passa dal form.
 
 **Prestazioni**
 
 - la pagina non usa Elementor (restano solo header/footer del sito);
-- `wp_head`: preload della foto dell'hero con `imagesrcset` e `imagesizes`
-  identici all'`<img>` (`dlc_evento_foto_hero()`), così la foto si scarica una
+- `wp_head`: preload della foto di copertina con `imagesrcset` e `imagesizes`
+  identici all'`<img>` (`dlc_evento_copertina()`), così la foto si scarica una
   volta sola anche su smartphone;
-- la resa usa `do_blocks()` e non `the_content()`, per avere lo stesso HTML
-  del template dei matrimoni (niente `wptexturize`, `wpautop`, `wp_filter_content_tags`).
+- le sezioni non passano dai filtri di `the_content`: stesso HTML del
+  template dei matrimoni.
 
 **Funzioni delle sezioni** (`shortcodes/dlc-blocchi.php`): `dlc_sezione_hero_html()`,
 `dlc_sezione_testo_html()`, `dlc_sezione_foto_larga_html()`, `dlc_info_voci()`,
-`dlc_info_griglia_html()`, `dlc_sezione_galleria_html()`. Le usano sia i blocchi
-sia `single-matrimonio.php`: un solo markup per le due pagine.
+`dlc_info_griglia_html()`, `dlc_sezione_galleria_html()`. Le usano sia
+`single-evento.php` sia `single-matrimonio.php`: un solo markup per le due pagine.
 
 ## Modello dati incluso (ACF JSON)
 
@@ -468,17 +482,14 @@ Nota tecnica:
   - `galleria_matrimonio_parte_2`
   - `storia_matrimonio_parte_2`
 
-3. `Image - Meta data` (location: tutte le immagini)
-- `gallery_image_size` (select: `wide`, `tall`, nullable)
-- `gallery_crop_position` (select: centro, sinistra/destra, alto/basso)
-- usato da shortcode modular gallery per il layout.
+3. `Foto nella galleria` (`group_image-metadata`, location: tutte le immagini)
+- `gallery_image_size` (pulsanti: Standard = vuoto, `wide`, `tall`)
+- `gallery_crop_position` (pulsanti: `center`, `left`/`right`, `top`/`bottom`, filtrati per orientamento)
+- usato da shortcode modular gallery per il layout; form in `inc/foto-admin.php`.
 
-4. `Dettagli evento` (post type `evento`, barra laterale)
-- `nome_coniuge_1`, `nome_coniuge_2`
-
-5. `Blocco: Hero con i nomi`, `Blocco: Testo`, `Blocco: Foto larga`,
-   `Blocco: Informazioni`, `Blocco: Galleria` (location: blocco `dlc/*`):
-   campi dei blocchi, vedi sezione 8.
+4. `Dettagli evento` (post type `evento`, a tutta pagina): stessi nomi dei
+   campi dei matrimoni più `hero_corsivo`, `_thumbnail_id` e il repeater
+   `capitoli`, vedi sezione 8.
 
 I gruppi nuovi vanno salvati con la sincronizzazione automatica JSON di ACF
 Extended attiva (`acfe_autosync: ["json"]`), altrimenti il JSON non viene scritto.
@@ -564,14 +575,9 @@ Gallery parte 1 con gruppo lightbox dedicato:
 ```text
 custom-tools/
 |- custom-tools.php
-|- blocks/                                (blocchi ACF dlc/* degli eventi)
-|  |- hero/        (block.json, render.php)
-|  |- testo/
-|  |- foto-larga/
-|  |- info/
-|  `- galleria/
 |- inc/
 |  |- eventi.php
+|  |- foto-admin.php
 |  |- register-cpt.php
 |  |- admin-columns.php
 |  |- dependencies.php
@@ -589,7 +595,9 @@ custom-tools/
    |  |- _modular-gallery-settings.scss   (valori della galleria: unica fonte)
    |  `- modular-gallery.scss
    |- css/modular-gallery.css             (compilato)
-   `- js/custom-tools.js
+   `- js/
+      |- custom-tools.js
+      `- foto-admin.js                    (anteprima del ritaglio in admin)
 ```
 
 ## Limiti attuali / note di manutenzione
